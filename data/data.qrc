@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>cd.svg</file>
+        <file>dialog-error.svg</file>
+    </qresource>
+</RCC>
