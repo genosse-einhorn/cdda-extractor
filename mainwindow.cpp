@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include "libcdda/drive_handle.h"
+#include "musicbrainz/releasefinder.h"
 #include "tracklistmodel.h"
 #include "extendederrordialog.h"
 #include "extractparametersdialog.h"
@@ -64,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&m_tocReader, &cdda::toc_finder::success, this, &MainWindow::tocLoadSuccess);
     connect(&m_tocReader, &cdda::toc_finder::error, this, &MainWindow::tocLoadError);
+    connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::noMetadataFound, this, &MainWindow::tocLoadFinish);
+    connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::metadataFound, this, &MainWindow::musicbrainzReleaseFound);
 
     connect(ui->eArtist, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumArtist);
     connect(ui->eComposer, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumComposer);
@@ -155,23 +158,43 @@ void MainWindow::tocLoadSuccess(const QString &device, const cdda::toc &toc)
     ui->metadataWidget->setEnabled(true);
     ui->tbExtract->setEnabled(true);
 
-    // Set up grid appearance
-    for (int i : ((int[]){ 1, 2, 3}))
-        ui->tvTracks->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
-
-    delete m_tocReadProgressDialog;
-    m_tocReadProgressDialog = nullptr;
-    ui->eTitle->setFocus();
-
-    //QMessageBox::information(this, tr("MusicBrainz disc id"), cdda::calculate_musicbrainz_discid(toc));
+    m_tocReadProgressDialog->setLabelText(tr("Searching for metadata..."));
+    m_releaseFinder.startSearch(cdda::calculate_musicbrainz_discid(toc), toc.catalog);
 }
 
 void MainWindow::tocLoadError(const QString &msg)
 {
-    delete m_tocReadProgressDialog;
-    m_tocReadProgressDialog = nullptr;
+    tocLoadFinish();
     ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
                                        "Make sure an audio CD is inserted into the drive."), msg);
+}
+
+void MainWindow::tocLoadFinish()
+{
+    delete m_tocReadProgressDialog;
+    m_tocReadProgressDialog = nullptr;
+}
+
+void MainWindow::musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &release)
+{
+    ui->eArtist->setText(release.artist);
+    ui->eTitle->setText(release.title);
+    ui->eComposer->setText(release.composer);
+    ui->eYear->setText(release.year);
+    ui->eDiscNo->setText(release.discNo);
+    ui->coverArt->setCover(release.cover);
+    for (const auto &track : release.tracks)
+    {
+        int i = m_trackmodel->trackIndexForTrackno(track.trackno);
+        if (i < 0)
+            continue;
+
+        m_trackmodel->setTrackArtist(i, track.artist);
+        m_trackmodel->setTrackTitle(i, track.title);
+        m_trackmodel->setTrackComposer(i, track.composer);
+    }
+
+    tocLoadFinish();
 }
 
 void MainWindow::extractError(const QString &msg)
@@ -193,6 +216,15 @@ void MainWindow::showEvent(QShowEvent *event)
         return;
 
     m_initialLoadDone = true;
+
+    int metadatawidth = ui->tvTracks->width()
+            - ui->tvTracks->columnWidth(TrackListModel::COLUMN_TRACKNO)
+            - ui->tvTracks->columnWidth(TrackListModel::COLUMN_LENGTH);
+    ui->tvTracks->setColumnWidth(TrackListModel::COLUMN_TITLE, metadatawidth/3);
+    ui->tvTracks->setColumnWidth(TrackListModel::COLUMN_ARTIST, metadatawidth/3);
+    ui->tvTracks->setColumnWidth(TrackListModel::COLUMN_COMPOSER, metadatawidth/3);
+    ui->tvTracks->horizontalHeader()->setSectionResizeMode(TrackListModel::COLUMN_TRACKNO, QHeaderView::ResizeToContents);
+    ui->tvTracks->horizontalHeader()->setSectionResizeMode(TrackListModel::COLUMN_LENGTH, QHeaderView::ResizeToContents);
 
     QTimer::singleShot(1, this, &MainWindow::showToc);
 }

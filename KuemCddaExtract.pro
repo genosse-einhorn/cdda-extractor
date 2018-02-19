@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui concurrent widgets svg network
+QT       += core gui concurrent widgets svg
 
 TARGET = KuemCddaExtract
 TEMPLATE = app
@@ -14,6 +14,12 @@ CONFIG += link_pkgconfig
 QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
+
+win32 {
+    LIBS += -lwininet
+} else {
+    QT += network
+}
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -31,7 +37,9 @@ SOURCES += main.cpp\
     encoder/abstractencoder.cpp \
     encoder/wavencoder.cpp \
     progressdialog.cpp \
-    coverartwidget.cpp
+    coverartwidget.cpp \
+    musicbrainz/urldownloader.cpp \
+    musicbrainz/releasefinder.cpp
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
@@ -48,7 +56,9 @@ HEADERS  += mainwindow.h \
     encoder/abstractencoder.h \
     encoder/wavencoder.h \
     progressdialog.h \
-    coverartwidget.h
+    coverartwidget.h \
+    musicbrainz/urldownloader.h \
+    musicbrainz/releasefinder.h
 
 FORMS    += mainwindow.ui \
     extendederrordialog.ui \

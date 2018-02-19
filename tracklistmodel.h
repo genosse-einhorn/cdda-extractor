@@ -73,6 +73,12 @@ public:
     QString trackComposer(int i) const;
     cdda::track_metadata trackMetadata(int i) const;
 
+    int trackIndexForTrackno(int trackno) const;
+
+    void setTrackTitle(int i, const QString &title);
+    void setTrackArtist(int i, const QString &artist);
+    void setTrackComposer(int i, const QString &composer);
+
 private:
 
     struct trackdata {

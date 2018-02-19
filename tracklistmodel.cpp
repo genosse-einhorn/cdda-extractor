@@ -66,7 +66,7 @@ QVariant TrackListModel::data(const QModelIndex &index, int role) const
     if (i < 0 || i >= (int)m_data.size())
         return QVariant();
 
-    if (role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole || role == Qt::ToolTipRole)
     {
         switch (index.column())
         {
@@ -339,4 +339,42 @@ cdda::track_metadata TrackListModel::trackMetadata(int i) const
     m.isrc = m_data[i].isrc;
 
     return m;
+}
+
+int TrackListModel::trackIndexForTrackno(int trackno) const
+{
+    for (int i = 0; i < int(m_data.size()); ++i)
+    {
+        if (m_data[i].trackno == trackno)
+            return i;
+    }
+
+    return -1;
+}
+
+void TrackListModel::setTrackTitle(int i, const QString &title)
+{
+    Q_ASSERT(i >= 0 && i < int(m_data.size()));
+    m_data[i].title = title;
+
+    auto modelIndex = createIndex(i, COLUMN_TITLE);
+    emit dataChanged(modelIndex, modelIndex);
+}
+
+void TrackListModel::setTrackArtist(int i, const QString &artist)
+{
+    Q_ASSERT(i >= 0 && i < int(m_data.size()));
+    m_data[i].artist = artist;
+
+    auto modelIndex = createIndex(i, COLUMN_ARTIST);
+    emit dataChanged(modelIndex, modelIndex);
+}
+
+void TrackListModel::setTrackComposer(int i, const QString &composer)
+{
+    Q_ASSERT(i >= 0 && i < int(m_data.size()));
+    m_data[i].composer = composer;
+
+    auto modelIndex = createIndex(i, COLUMN_COMPOSER);
+    emit dataChanged(modelIndex, modelIndex);
 }
