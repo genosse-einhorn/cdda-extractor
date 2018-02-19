@@ -92,10 +92,14 @@ void ReleaseFinder::discidDataArrived(const QByteArray &data)
 
     if (availableReleases.size())
     {
+        QStringRef mcnWithoutLeadingZeroes(&m_mcn);
+        while (mcnWithoutLeadingZeroes.startsWith(QLatin1Char('0')))
+            mcnWithoutLeadingZeroes = mcnWithoutLeadingZeroes.right(mcnWithoutLeadingZeroes.length()-1);
+
         // check if we have a release with the right catalog nr
         for (const Release &r : availableReleases)
         {
-            if (r.catalogNrs.contains(m_mcn) || r.catalogNrs.contains(QStringLiteral("%1").arg(m_mcn.toInt())))
+            if (r.catalogNrs.contains(m_mcn) || r.catalogNrs.contains(mcnWithoutLeadingZeroes.toString()))
             {
                 m_release = r.id;
                 startMetadataSearch();
