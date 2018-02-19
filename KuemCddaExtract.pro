@@ -20,7 +20,6 @@ SOURCES += main.cpp\
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
     tracklistmodel.cpp \
-    libcdda/paranoia_toc_reader.cpp \
     extendederrordialog.cpp \
     extractparametersdialog.cpp \
     clickablebuddylabel.cpp \
@@ -38,7 +37,6 @@ HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     tracklistmodel.h \
-    libcdda/paranoia_toc_reader.h \
     extendederrordialog.h \
     extractparametersdialog.h \
     clickablebuddylabel.h \
