@@ -53,13 +53,18 @@ void ExtractRunner::setOutputDirectory(const QString &dir)
     m_outputDirectory = dir;
 }
 
+void ExtractRunner::setUseParanoia(bool paranoia)
+{
+    m_paranoia = paranoia;
+}
+
 void ExtractRunner::start()
 {
     m_currentTrackIndex = -1;
     m_processedBlocks = cdda::block_addr_delta::from_lba(0);
 
     // open device in worker
-    QMetaObject::invokeMethod(m_worker, "openDevice", Q_ARG(QString, m_trackList->device()));
+    QMetaObject::invokeMethod(m_worker, "openDevice", Q_ARG(QString, m_trackList->device()), Q_ARG(bool, m_paranoia));
 
     sendNextTrackToWorker();
 }

@@ -30,6 +30,7 @@ signals:
 public slots:
     void setFormat(const QString &format);
     void setOutputDirectory(const QString &dir);
+    void setUseParanoia(bool paranoia);
 
     void start();
     void cancel();
@@ -42,6 +43,7 @@ private:
     const TrackListModel *m_trackList;
     QString m_format { QStringLiteral("wav") };
     QString m_outputDirectory;
+    bool m_paranoia { false };
 
     QThread *m_workerThread;
     ExtractRunnerWorker *m_worker;

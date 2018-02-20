@@ -11,10 +11,13 @@
 #   include <fcntl.h>
 #endif
 #include <memory>
+#include <functional>
 #include <QThread>
 
 #include "libcdda/os_util.h"
 #include "libcdda/drive_handle.h"
+
+#include "paranoia/paranoia.h"
 
 #include "encoder/wavencoder.h"
 
@@ -73,6 +76,105 @@ QIODevice *createFileExclusive(const QString &filename, QString *error)
 #endif
 }
 
+struct ReaderBase
+{
+    virtual ~ReaderBase() {}
+    virtual bool eof() = 0;
+    virtual bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) = 0;
+    virtual QString errorMessage() = 0;
+};
+
+class RawReader : public ReaderBase
+{
+private:
+    cdda::drive_handle &m_handle;
+    cdda::block_addr m_pos;
+    cdda::block_addr_delta m_remaining;
+    qint16 m_buffer[588*2*20]; // FIXME: why 20 blocks?
+
+public:
+    RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len)
+        : m_handle(handle), m_pos(start), m_remaining(len)
+    {}
+
+    bool eof() override { return m_remaining.delta_blocks <= 0; }
+    bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) override
+    {
+        auto count = std::min(cdda::block_addr_delta::from_lba(int(sizeof(m_buffer)/2352)), m_remaining);
+        if (m_handle.read(m_buffer, m_pos, count))
+        {
+            *pBuffer = m_buffer;
+            *pBuflen = count;
+            m_pos += count;
+            m_remaining -= count;
+            return true;
+        }
+        else
+        {
+            *pBuffer = nullptr;
+            *pBuflen = cdda::block_addr_delta::from_lba(0);
+            return false;
+        }
+    }
+    QString errorMessage() override { return m_handle.last_error(); }
+};
+
+class ParanoiaReader : public ReaderBase
+{
+private:
+    cdda::drive_handle &m_handle;
+    int m_blocksRemaining;
+
+    cdrom_drive m_paranoiaDrive;
+    cdrom_paranoia *m_paranoiaHandle;
+
+    static long paranoiaReadfunc(void *userdata, void *buffer, long start, long len)
+    {
+        auto self = (ParanoiaReader*)userdata;
+
+        if (self->m_handle.read(buffer, cdda::block_addr::from_lba(int(start)), cdda::block_addr_delta::from_lba(int(len))))
+            return len;
+        else
+            return 0L;
+    }
+
+public:
+    ParanoiaReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len)
+        : m_handle(handle)
+    {
+        m_paranoiaDrive.cdda_read_func = &ParanoiaReader::paranoiaReadfunc;
+        m_paranoiaDrive.userdata = this;
+        m_paranoiaDrive.nsectors = 10; // FIXME: Why? It works, but I'd like to know why higher values don't work
+
+        m_paranoiaHandle = paranoia_init(&m_paranoiaDrive);
+        paranoia_modeset(m_paranoiaHandle, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);
+        paranoia_set_range(m_paranoiaHandle, start.block, (start+len).block - 1);
+
+        m_blocksRemaining = len.delta_blocks;
+    }
+    ~ParanoiaReader() override
+    {
+        paranoia_free(m_paranoiaHandle);
+    }
+
+    bool eof() override { return m_blocksRemaining <= 0; }
+    bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) override
+    {
+        *pBuffer = paranoia_read(m_paranoiaHandle, nullptr);
+        *pBuflen = cdda::block_addr_delta::from_lba(1);
+        if (*pBuffer != nullptr)
+        {
+            m_blocksRemaining -= 1;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    QString errorMessage() override { return m_handle.last_error(); }
+};
+
 } // anonymous namespace
 
 ExtractRunnerWorker::ExtractRunnerWorker(QObject *parent) : QObject(parent)
@@ -80,13 +182,15 @@ ExtractRunnerWorker::ExtractRunnerWorker(QObject *parent) : QObject(parent)
 
 }
 
-void ExtractRunnerWorker::openDevice(const QString &device)
+void ExtractRunnerWorker::openDevice(const QString &device, bool paranoiaMode)
 {
     m_handle = cdda::drive_handle::open(device);
     if (!m_handle)
     {
         emit failed(tr("Could not open %1: %2").arg(device).arg(m_handle.last_error()));
     }
+
+    m_paranoiaMode = paranoiaMode;
 }
 
 void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &basename,
@@ -140,29 +244,37 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
         return;
     }
 
-    // loop for reading and encoding audio data
-    const int STEP_NO = 20;
-    const cdda::block_addr_delta STEP_BLOCKS = cdda::block_addr_delta::from_lba(STEP_NO);
-    for (auto i = start; i < start + length; i += STEP_BLOCKS)
-    {
-        qint16 buf[STEP_NO*2352/2] = {};
-        cdda::block_addr_delta s = std::min(STEP_BLOCKS, start + length - i);
+    // initialize paranoia
+    std::unique_ptr<ReaderBase> reader;
 
-        // read cd audio
-        if (!m_handle.read(buf, i, s))
+    if (m_paranoiaMode)
+    {
+        reader.reset(new ParanoiaReader(m_handle, start, length));
+    }
+    else
+    {
+        reader.reset(new RawReader(m_handle, start, length));
+    }
+
+    // loop for reading and encoding audio data
+    while (!reader->eof())
+    {
+        qint16 *buf;
+        cdda::block_addr_delta buflen;
+        if (!reader->read(&buf, &buflen))
         {
-            emit failed(tr("Failed to read from CD :51").arg(m_handle.last_error()));
+            emit failed(tr("Failed to read from CD: %1").arg(reader->errorMessage()));
             return;
         }
 
         // encode it
-        if (!encoder->feed(buf, 588*s.delta_blocks))
+        if (!encoder->feed(buf, 588*buflen.delta_blocks))
         {
             emit failed(tr("Failed while encoding audio: %1").arg(encoder->errorText()));
             return;
         }
 
-        emit progress(s);
+        emit progress(buflen);
 
         QCoreApplication::processEvents();
         if (m_cancelRequested)

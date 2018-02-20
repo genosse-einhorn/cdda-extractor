@@ -13,6 +13,9 @@ CONFIG += link_pkgconfig
 
 QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
+# paranoia code contains lots of unused parameters
+QMAKE_CFLAGS += -Wno-unused
+
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 win32 {
@@ -39,7 +42,12 @@ SOURCES += main.cpp\
     progressdialog.cpp \
     coverartwidget.cpp \
     musicbrainz/urldownloader.cpp \
-    musicbrainz/releasefinder.cpp
+    musicbrainz/releasefinder.cpp \
+    paranoia/gap.c \
+    paranoia/isort.c \
+    paranoia/overlap.c \
+    paranoia/p_block.c \
+    paranoia/paranoia.c
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
@@ -58,7 +66,13 @@ HEADERS  += mainwindow.h \
     progressdialog.h \
     coverartwidget.h \
     musicbrainz/urldownloader.h \
-    musicbrainz/releasefinder.h
+    musicbrainz/releasefinder.h \
+    paranoia/gap.h \
+    paranoia/isort.h \
+    paranoia/overlap.h \
+    paranoia/p_block.h \
+    paranoia/paranoia.h \
+    paranoia/cdda_interface.h
 
 FORMS    += mainwindow.ui \
     extendederrordialog.ui \
@@ -67,3 +81,6 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     data/data.qrc
+
+DISTFILES += \
+    paranoia/README

@@ -17,13 +17,14 @@ signals:
     void progress(cdda::block_addr_delta numFrames);
 
 public slots:
-    void openDevice(const QString &device);
+    void openDevice(const QString &device, bool paranoiaMode);
     void beginExtract(const QString &directory, const QString &basename, const QString &format,
                       cdda::block_addr start, cdda::block_addr_delta length, const cdda::track_metadata &metadata);
     void cancel();
 
 private:
     cdda::drive_handle m_handle;
+    bool m_paranoiaMode { false };
     bool m_cancelRequested { false };
 };
 

@@ -146,6 +146,7 @@ void MainWindow::beginExtract()
 
     runner->setOutputDirectory(dialog.outputDir());
     runner->setFormat(dialog.format());
+    runner->setUseParanoia(dialog.paranoiaActivated());
 
     runner->start();
 }

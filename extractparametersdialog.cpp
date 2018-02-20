@@ -45,6 +45,11 @@ QString ExtractParametersDialog::format() const
     return QStringLiteral("wav");
 }
 
+bool ExtractParametersDialog::paranoiaActivated() const
+{
+    return ui->rbParanoiaExtract->isChecked();
+}
+
 void ExtractParametersDialog::on_bBrowseDir_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(this,

@@ -19,6 +19,7 @@ public:
 
     QString outputDir() const;
     QString format() const;
+    bool paranoiaActivated() const;
 
 private slots:
     void on_bBrowseDir_clicked();
