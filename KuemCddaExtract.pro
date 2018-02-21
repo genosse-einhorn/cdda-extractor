@@ -10,6 +10,7 @@ TARGET = KuemCddaExtract
 TEMPLATE = app
 
 CONFIG += link_pkgconfig
+PKGCONFIG += flac
 
 QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
@@ -47,7 +48,8 @@ SOURCES += main.cpp\
     paranoia/isort.c \
     paranoia/overlap.c \
     paranoia/p_block.c \
-    paranoia/paranoia.c
+    paranoia/paranoia.c \
+    encoder/flacencoder.cpp
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
@@ -72,7 +74,8 @@ HEADERS  += mainwindow.h \
     paranoia/overlap.h \
     paranoia/p_block.h \
     paranoia/paranoia.h \
-    paranoia/cdda_interface.h
+    paranoia/cdda_interface.h \
+    encoder/flacencoder.h
 
 FORMS    += mainwindow.ui \
     extendederrordialog.ui \

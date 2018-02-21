@@ -20,6 +20,7 @@
 #include "paranoia/paranoia.h"
 
 #include "encoder/wavencoder.h"
+#include "encoder/flacencoder.h"
 
 namespace {
 
@@ -235,7 +236,10 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
     // create encoder instance
     std::unique_ptr<Encoder::AbstractEncoder> encoder;
 
-    encoder.reset(new Encoder::WavEncoder());
+    if (format == QLatin1Literal("flac"))
+        encoder.reset(new Encoder::FlacEncoder());
+    else
+        encoder.reset(new Encoder::WavEncoder());
 
     // initialize encoder
     if (!encoder->initialize(device.get(), length.delta_blocks*588, metadata))
