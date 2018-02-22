@@ -184,6 +184,7 @@ void MainWindow::musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &rel
     ui->eYear->setText(release.year);
     ui->eDiscNo->setText(release.discNo);
     ui->coverArt->setCover(release.cover);
+    m_trackmodel->setAlbumCover(release.cover);
     for (const auto &track : release.tracks)
     {
         int i = m_trackmodel->trackIndexForTrackno(track.trackno);

@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QPalette>
+#include <QBuffer>
 
 TrackListModel::TrackListModel(QObject *parent)
     : QAbstractTableModel(parent)
@@ -238,6 +239,8 @@ void TrackListModel::clear()
     m_albumGenre.clear();
     m_albumYear.clear();
     m_albumDiscNo.clear();
+    m_albumCover = QImage();
+    m_albumCoverPng.clear();
 
     endResetModel();
 }
@@ -293,6 +296,16 @@ void TrackListModel::setAlbumDiscNo(const QString &no)
     m_albumDiscNo = no;
 }
 
+void TrackListModel::setAlbumCover(const QImage &image)
+{
+    m_albumCover = image;
+    m_albumCoverPng.clear();
+
+    QBuffer buffer(&m_albumCoverPng);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+}
+
 QString TrackListModel::trackISRC(int i) const
 {
     return m_data[i].tocdata.isrc;
@@ -329,6 +342,7 @@ cdda::track_metadata TrackListModel::trackMetadata(int i) const
 {
     cdda::track_metadata m;
     m.trackno = trackNo(i);
+    m.tracktotal = (int)m_data.size();
     m.album = m_albumTitle;
     m.artist = m_data[i].artist.size() ? m_data[i].artist : m_albumArtist;
     m.composer = m_data[i].composer.size() ? m_data[i].composer : m_albumComposer;
@@ -337,6 +351,7 @@ cdda::track_metadata TrackListModel::trackMetadata(int i) const
     m.title = m_data[i].title;
     m.year = m_albumYear;
     m.isrc = m_data[i].isrc;
+    m.coverPng = m_albumCoverPng;
 
     return m;
 }

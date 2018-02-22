@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <QAbstractTableModel>
+#include <QImage>
 
 #include "libcdda/toc.h"
 
@@ -54,6 +55,7 @@ public:
     void setAlbumGenre(const QString &genre);
     void setAlbumYear(const QString &year);
     void setAlbumDiscNo(const QString &no);
+    void setAlbumCover(const QImage &image);
 
     QString albumArtist() const { return m_albumArtist.size() ? m_albumArtist : tr("Unknown Artist"); }
     QString albumComposer() const { return m_albumComposer.size() ? m_albumComposer : tr("Unknown Composer"); }
@@ -102,6 +104,9 @@ private:
     QString m_albumGenre;
     QString m_albumYear;
     QString m_albumDiscNo;
+
+    QImage m_albumCover;
+    QByteArray m_albumCoverPng;
 };
 
 #endif // TRACKLISTMODEL_H

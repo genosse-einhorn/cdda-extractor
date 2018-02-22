@@ -4,6 +4,7 @@
 #include "abstractencoder.h"
 
 #include <FLAC/stream_encoder.h>
+#include <vector>
 
 namespace Encoder {
 
@@ -23,6 +24,8 @@ public:
 private:
     FLAC__StreamEncoder *m_encoder;
     QString m_error;
+
+    std::vector<FLAC__StreamMetadata *> m_metadata;
 };
 
 } // namespace Encoder

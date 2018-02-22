@@ -122,6 +122,7 @@ struct toc {
 
 struct track_metadata {
     int trackno;
+    int tracktotal;
     QString title;
     QString artist;
     QString composer;
@@ -130,6 +131,7 @@ struct track_metadata {
     QString year;
     QString discNo;
     QString isrc;
+    QByteArray coverPng;
 };
 
 QString calculate_musicbrainz_discid(const toc &toc);
