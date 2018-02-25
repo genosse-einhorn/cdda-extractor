@@ -1,19 +1,20 @@
 #include "drive_handle.h"
 
 #include <algorithm>
+#include <cstring>
+#include <cmath>
+#ifdef __linux__
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <cstring>
-#include <cmath>
-#include <sys/types.h>
-#include <sys/stat.h>
-#ifdef __linux__
 #include <sys/ioctl.h>
 #include <linux/cdrom.h>
 #include <scsi/sg.h>
 #endif
 #ifdef WIN32
+#define NOMINMAX
 #include <windows.h>
 #include <winioctl.h>
 #include <ntddcdrm.h>

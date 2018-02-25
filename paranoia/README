@@ -3,6 +3,7 @@ The paranoia code has been taken from the cdrdao 1.2.3 source
 Changes:
  - Reworked 'cdrom_drive' structure in 'cdda_interface.h' to take a function pointer for 'cdda_read',
    also moved the header file into the paranoia directory
+ - Replaced VLAs with alloca() calls to make it compile under MSVC
 
 README from cdrdao below:
 

@@ -1,5 +1,7 @@
 #include "sense.h"
 
+#include <vector>
+
 namespace {
 
 struct sense_table_row {
@@ -252,14 +254,15 @@ sense_table_row sense_table[] = {
 QString byte_buffer_to_hex_str(const unsigned char *buf, size_t len)
 {
     static const char *digits = "0123456789ABCDEF";
-    char str[len*2+1];
+    std::vector<char> str;
+    str.resize(len*2 + 1);
     for (size_t i = 0; i < len; ++i)
     {
         str[2*i]   = digits[buf[i] >> 4];
         str[2*i+1] = digits[buf[i] & 15];
     }
     str[2*len] = 0;
-    return QString::fromLatin1(str);
+    return QString::fromLatin1(&str[0]);
 }
 
 } // anonymous namespace

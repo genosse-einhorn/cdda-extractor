@@ -47,7 +47,12 @@
   **************************************************************/
 
 #include <stdlib.h>
+#ifdef WIN32
+#include <malloc.h>
+#else
+#include <alloca.h>
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -466,8 +471,9 @@ static long i_silence_match(root_block *root, v_fragment *v,
   if(fb(v)>=re(root) && fb(v)-p->dynoverlap<re(root)){
     /* extend the zeroed area of root */
     long addto=fb(v)+MIN_SILENCE_BOUNDARY-re(root);
-    int16_t vec[addto];
-    memset(vec,0,sizeof(vec));
+    size_t vecsize = addto*sizeof(int16_t);
+    int16_t *vec = alloca(vecsize);
+    memset(vec,0,vecsize);
     c_append(rc(root),vec,addto);
   }
 
@@ -818,7 +824,7 @@ static int i_stage2(cdrom_paranoia *p,long beginword,long endword,
     /* loop through all the current fragments */
     v_fragment *first=v_first(p);
     long active=p->fragments->active,count=0;
-    v_fragment *list[active];
+    v_fragment **list = alloca(active * sizeof(v_fragment));
 
     while(first){
       v_fragment *next=v_next(first);

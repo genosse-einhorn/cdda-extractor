@@ -27,7 +27,7 @@ typedef struct linked_list{
   struct linked_element *head;
   struct linked_element *tail;
 
-  void *(*new_poly)();
+  void *(*new_poly)(void);
   void (*free_poly)(void *poly);
   long current;
   long active;
