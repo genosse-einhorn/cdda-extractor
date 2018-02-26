@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>614</width>
-    <height>661</height>
+    <width>585</width>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Extraction Parameters</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -50,7 +50,7 @@
       <item row="0" column="2">
        <widget class="QPushButton" name="bBrowseDir">
         <property name="text">
-         <string>Browse...</string>
+         <string>&amp;Browse...</string>
         </property>
        </widget>
       </item>
@@ -79,11 +79,8 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;b&gt;Fast Mode&lt;/b&gt;&lt;br&gt;
-Trust the drive to read data correctly, which drives manufactured after the year 2000 usually manage to do.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
+         <string>&lt;b&gt;&amp;Fast Mode&lt;/b&gt;&lt;br&gt;
+Trust the hardware to read data correctly, which almost all drives do.</string>
         </property>
         <property name="buddy">
          <cstring>rbFastExtract</cstring>
@@ -115,10 +112,7 @@ Trust the drive to read data correctly, which drives manufactured after the year
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;b&gt;Paranoia Mode&lt;/b&gt;&lt;br&gt;Perform extra error detection and correction. This guarantees a perfect rip even on low-quality, jitter-prone drives, but is very slow.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
+         <string>&lt;b&gt;&amp;Paranoia Mode&lt;/b&gt;&lt;br&gt;Perform extra error detection and correction. This is very slow.</string>
         </property>
         <property name="buddy">
          <cstring>rbParanoiaExtract</cstring>
@@ -131,17 +125,10 @@ Trust the drive to read data correctly, which drives manufactured after the year
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Audio Encoding</string>
+      <string>Audio File Format</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QRadioButton" name="rbWav">
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
+      <item row="1" column="0">
        <widget class="QRadioButton" name="rbFlac">
         <property name="text">
          <string/>
@@ -151,20 +138,21 @@ Trust the drive to read data correctly, which drives manufactured after the year
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="2" column="1">
        <widget class="ClickableBuddyLabel" name="label_4">
         <property name="enabled">
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>&lt;b&gt;MP3&lt;/b&gt;, 192kbit/s (.mp3)</string>
+         <string>&lt;b&gt;&amp;MP3&lt;/b&gt;, 192kbit/s (.mp3)&lt;br&gt;
+Lossy compression with potentially audible quality degradation.</string>
         </property>
         <property name="buddy">
          <cstring>rbMp3</cstring>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="2" column="0">
        <widget class="QRadioButton" name="rbMp3">
         <property name="enabled">
          <bool>false</bool>
@@ -174,7 +162,18 @@ Trust the drive to read data correctly, which drives manufactured after the year
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="1" column="1">
+       <widget class="ClickableBuddyLabel" name="label_3">
+        <property name="text">
+         <string>&lt;b&gt;F&amp;LAC&lt;/b&gt; (.flac)&lt;br&gt;
+Lossless compression. Recommended, but not all players can handle it.</string>
+        </property>
+        <property name="buddy">
+         <cstring>rbFlac</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
        <widget class="ClickableBuddyLabel" name="label_2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -183,74 +182,18 @@ Trust the drive to read data correctly, which drives manufactured after the year
          </sizepolicy>
         </property>
         <property name="text">
-         <string>&lt;b&gt;RIFF WAVE&lt;/b&gt; (.wav)</string>
+         <string>&lt;b&gt;RIFF &amp;WAVE&lt;/b&gt; (.wav)&lt;br&gt;
+Uncompressed file format without metadata. Not recommended.</string>
         </property>
         <property name="buddy">
          <cstring>rbWav</cstring>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="ClickableBuddyLabel" name="label_7">
-        <property name="enabled">
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="rbWav">
+        <property name="checked">
          <bool>false</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Lossy &amp;compression. Compatible with lots of devices, but quality degradation might be audible on high-end equipment.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="buddy">
-         <cstring>rbMp3</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="ClickableBuddyLabel" name="label_5">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Uncompressed file format. Will take lots of space on &amp;your hard disk and can't even save metadata. Not recommended.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="buddy">
-         <cstring>rbWav</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="ClickableBuddyLabel" name="label_6">
-        <property name="text">
-         <string>Losless compression: audio data is preserved bit-for-bit, but still compressed &amp;quite well. Not all devices can handle this format.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="buddy">
-         <cstring>rbFlac</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="ClickableBuddyLabel" name="label_3">
-        <property name="text">
-         <string>&lt;b&gt;FLAC&lt;/b&gt; (.flac)</string>
-        </property>
-        <property name="buddy">
-         <cstring>rbFlac</cstring>
         </property>
        </widget>
       </item>
@@ -323,9 +266,11 @@ Trust the drive to read data correctly, which drives manufactured after the year
   <tabstop>eOutputDirectory</tabstop>
   <tabstop>bBrowseDir</tabstop>
   <tabstop>cbCreateSubfolder</tabstop>
-  <tabstop>rbWav</tabstop>
+  <tabstop>rbFastExtract</tabstop>
+  <tabstop>rbParanoiaExtract</tabstop>
   <tabstop>rbFlac</tabstop>
   <tabstop>rbMp3</tabstop>
+  <tabstop>rbWav</tabstop>
   <tabstop>bCancel</tabstop>
   <tabstop>bStart</tabstop>
  </tabstops>

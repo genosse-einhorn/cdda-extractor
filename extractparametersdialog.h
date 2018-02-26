@@ -28,6 +28,10 @@ private:
     Ui::ExtractParametersDialog *ui;
     QString m_artist;
     QString m_album;
+
+    // QWidget interface
+protected:
+    void showEvent(QShowEvent *event) override;
 };
 
 #endif // EXTRACTPARAMETERSDIALOG_H

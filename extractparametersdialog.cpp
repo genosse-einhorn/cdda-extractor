@@ -12,6 +12,8 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     ui->setupUi(this);
 
     ui->eOutputDirectory->setText(QStandardPaths::writableLocation(QStandardPaths::MusicLocation));
+
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 ExtractParametersDialog::~ExtractParametersDialog()
@@ -57,4 +59,12 @@ void ExtractParametersDialog::on_bBrowseDir_clicked()
                                                     ui->eOutputDirectory->text());
     if (dir.size())
         ui->eOutputDirectory->setText(dir);
+}
+
+
+void ExtractParametersDialog::showEvent(QShowEvent *event)
+{
+    resize(width(), heightForWidth(width()));
+
+    QDialog::showEvent(event);
 }

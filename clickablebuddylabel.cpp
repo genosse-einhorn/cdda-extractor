@@ -25,9 +25,9 @@ void ClickableBuddyLabel::mousePressEvent(QMouseEvent *event)
             this->buddy()->setFocus();
 
         QAbstractButton *button = qobject_cast<QAbstractButton*>(this->buddy());
-        if (button && button->isCheckable() && button->isEnabled())
+        if (button && button->isEnabled())
         {
-            button->setChecked(true);
+            button->animateClick();
         }
     }
 }
