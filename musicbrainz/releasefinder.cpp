@@ -36,7 +36,7 @@ void ReleaseFinder::startMetadataSearch()
 
 void ReleaseFinder::startCoverDownload()
 {
-    QString url = QStringLiteral("https://coverartarchive.org/release/%1/front-250").arg(m_release);
+    QString url = QStringLiteral("https://coverartarchive.org/release/%1/front-500").arg(m_release);
     UrlDownloader *downloader = new UrlDownloader(url, this);
     connect(downloader, &UrlDownloader::downloaded, this, &ReleaseFinder::coverArrived);
     connect(downloader, &UrlDownloader::downloaded, downloader, &UrlDownloader::deleteLater);
