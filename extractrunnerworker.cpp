@@ -53,7 +53,7 @@ QIODevice *createFileExclusive(const QString &filename, QString *error)
     QString nativeFn = QDir::toNativeSeparators(filename);
     HANDLE h = CreateFile(LPCWSTR(nativeFn.utf16()),
                           GENERIC_WRITE, 0, nullptr,
-                          CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
+                          CREATE_NEW, FILE_ATTRIBUTE_NORMAL,
                           nullptr);
     if (h != 0 && h != INVALID_HANDLE_VALUE)
     {
@@ -68,7 +68,7 @@ QIODevice *createFileExclusive(const QString &filename, QString *error)
         return nullptr;
     }
 
-    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    if (GetLastError() == ERROR_FILE_EXISTS)
         return nullptr;
 
     *error = cdda::os_error_to_str(GetLastError());
