@@ -1,5 +1,6 @@
 #include "extractparametersdialog.h"
 #include "ui_extractparametersdialog.h"
+#include "encoder/lame_backend.h"
 
 #include <QStandardPaths>
 #include <QFileDialog>
@@ -14,6 +15,16 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     ui->eOutputDirectory->setText(QStandardPaths::writableLocation(QStandardPaths::MusicLocation));
 
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    if (Encoder::LameFuncTable::get())
+    {
+        ui->lMp3->setEnabled(true);
+        ui->rbMp3->setEnabled(true);
+    }
+    else
+    {
+        ui->lMp3->setText(tr("%1<br><font color=red>Not available, please install <code>libmp3lame</code></font>").arg(ui->lMp3->text()));
+    }
 }
 
 ExtractParametersDialog::~ExtractParametersDialog()

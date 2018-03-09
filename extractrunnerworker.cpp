@@ -21,6 +21,7 @@
 
 #include "encoder/wavencoder.h"
 #include "encoder/flacencoder.h"
+#include "encoder/lameencoder.h"
 
 namespace {
 
@@ -238,6 +239,8 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
 
     if (format == QLatin1Literal("flac"))
         encoder.reset(new Encoder::FlacEncoder());
+    else if (format == QLatin1Literal("mp3"))
+        encoder.reset(new Encoder::LameEncoder());
     else
         encoder.reset(new Encoder::WavEncoder());
 

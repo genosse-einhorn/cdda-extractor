@@ -13,6 +13,8 @@ CONFIG += link_pkgconfig c++11
 
 QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
+msvc: QMAKE_CXXFLAGS += /utf-8
+
 # paranoia code contains lots of unused parameters and troublesome conversions
 msvc {
     QMAKE_CFLAGS += /wd4244
@@ -52,7 +54,8 @@ SOURCES += main.cpp\
     paranoia/overlap.c \
     paranoia/p_block.c \
     paranoia/paranoia.c \
-    encoder/flacencoder.cpp
+    encoder/flacencoder.cpp \
+    encoder/lameencoder.cpp
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
@@ -78,7 +81,9 @@ HEADERS  += mainwindow.h \
     paranoia/p_block.h \
     paranoia/paranoia.h \
     paranoia/cdda_interface.h \
-    encoder/flacencoder.h
+    encoder/flacencoder.h \
+    encoder/lame_backend.h \
+    encoder/lameencoder.h
 
 FORMS    += mainwindow.ui \
     extendederrordialog.ui \
@@ -90,6 +95,17 @@ RESOURCES += \
 
 DISTFILES += \
     paranoia/README
+
+# MP3
+load(configure)
+qtCompileTest(lame) {
+    SOURCES += \
+        encoder/lame_backend_linked.cpp
+    LIBS += -lmp3lame
+} else {
+    SOURCES += \
+        encoder/lame_backend_dll.cpp
+}
 
 # FLAC
 packagesExist(flac) {
