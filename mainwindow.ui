@@ -26,8 +26,8 @@
          <string>&amp;Refresh</string>
         </property>
         <property name="icon">
-         <iconset theme="view-refresh">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="view-refresh" resource="data/data.qrc">
+          <normaloff>:/view-refresh.svg</normaloff>:/view-refresh.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -62,8 +62,8 @@
          <string>&amp;Extract...</string>
         </property>
         <property name="icon">
-         <iconset theme="document-save">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="document-save" resource="data/data.qrc">
+          <normaloff>:/document-save.svg</normaloff>:/document-save.svg</iconset>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -84,6 +84,10 @@
        <widget class="QToolButton" name="tbMore">
         <property name="text">
          <string>&amp;More ▼</string>
+        </property>
+        <property name="icon">
+         <iconset theme="help-browser" resource="data/data.qrc">
+          <normaloff>:/help-browser.svg</normaloff>:/help-browser.svg</iconset>
         </property>
         <property name="popupMode">
          <enum>QToolButton::InstantPopup</enum>
@@ -317,6 +321,8 @@
   <tabstop>eDiscNo</tabstop>
   <tabstop>tvTracks</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="data/data.qrc"/>
+ </resources>
  <connections/>
 </ui>

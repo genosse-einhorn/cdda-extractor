@@ -2,5 +2,8 @@
     <qresource prefix="/">
         <file>cd.svg</file>
         <file>dialog-error.svg</file>
+        <file>document-save.svg</file>
+        <file>view-refresh.svg</file>
+        <file>help-browser.svg</file>
     </qresource>
 </RCC>
