@@ -283,6 +283,10 @@ void ReleaseFinder::parseMedium(QXmlStreamReader *xml)
                 }
             }
         }
+        else if (xml->name() == QLatin1Literal("pregap"))
+        {
+            trackMeta.push_back(parseTrack(xml));
+        }
         else
         {
             xml->skipCurrentElement();

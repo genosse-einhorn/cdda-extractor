@@ -52,7 +52,7 @@ struct block_addr {
 
     int second() const { return ((block + 150) / 75) % 60; }
 
-    int frame() const {  return block % 75; }
+    int frame() const {  return (block + 150) % 75; }
 
     static block_addr from_lba(int index)
     {

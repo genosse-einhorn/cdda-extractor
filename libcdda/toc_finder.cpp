@@ -66,6 +66,21 @@ toc_finder::toc_result toc_finder::readToc()
             continue;
         }
 
+        // if the first track starts after 00:02.00, something fishy is going on
+        if (toc.tracks[0].start > cdda::block_addr::from_lba(0))
+        {
+            // synthesize track zero
+            cdda::toc_track track;
+            track.session = toc.tracks[0].session;
+            track.adr = toc.tracks[0].adr;
+            track.control = toc.tracks[0].control;
+            track.index = 0;
+            track.start = cdda::block_addr::from_lba(0);
+            track.length = toc.tracks[0].start - track.start;
+
+            toc.tracks.insert(toc.tracks.begin(), track);
+        }
+
         retval.device = h.device_name();
         retval.toc = toc;
         break;

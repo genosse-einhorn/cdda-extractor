@@ -21,6 +21,8 @@ QString cdda::calculate_musicbrainz_discid(const toc &toc)
     {
         if (!track.is_audio())
             continue;
+        if (track.index < 1)
+            continue; // ignore synthesized hidden track
 
         if (track.index < firstTrackNo)
             firstTrackNo = quint8(track.index);

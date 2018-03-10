@@ -317,6 +317,8 @@ QString TrackListModel::trackTitle(int i) const
         return tr("(Data Track %1)").arg(m_data[i].trackno);
     if (m_data[i].title.size())
         return m_data[i].title;
+    if (m_data[i].trackno < 1)
+        return tr("Hidden track %1").arg(m_data[i].trackno);
     return tr("Track %1").arg(m_data[i].trackno);
 }
 
