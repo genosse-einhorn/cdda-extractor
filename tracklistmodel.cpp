@@ -220,6 +220,8 @@ void TrackListModel::reset(const std::vector<cdda::toc_track> &tracks)
         m_data[i].selected = tracks[i].is_audio();
         m_data[i].trackno = tracks[i].index;
         m_data[i].tocdata = tracks[i];
+        m_data[i].artist = tracks[i].artist;
+        m_data[i].title = tracks[i].title;
     }
 
     endResetModel();

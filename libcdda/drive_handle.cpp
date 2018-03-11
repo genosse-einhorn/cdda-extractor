@@ -264,6 +264,139 @@ bool drive_handle::allow_removal()
     return exec_scsi_command(&cdb, sizeof(cdb), nullptr, 0);
 }
 
+void drive_handle::read_cd_text(toc &toc)
+{
+    // READ TOC/PMA/ATIP response (format = 0101b)
+#pragma pack(push, 1)
+    struct cdtext_pack {
+        quint8 pack_type;
+        quint8 track_no;
+        quint8 counter;
+        quint8 character_pos : 4;
+        quint8 block_no : 3;
+        quint8 double_byte : 1;
+        char textdata[12];
+        quint8 crc0;
+        quint8 crc1;
+    };
+    struct {
+        quint8 toclen_msb;
+        quint8 toclen_lsb;
+        quint8 reserved;
+        quint8 reserved2;
+
+        struct cdtext_pack cdtext_descriptors[2048];
+
+        quint16 toclen() { return quint16(quint16(toclen_msb) << 8 | quint16(toclen_lsb)); }
+        int descriptor_count()
+        {
+            return std::min(
+                    int((toclen()-2) / sizeof(cdtext_descriptors[0])),
+                    int(sizeof(cdtext_descriptors)/sizeof(cdtext_descriptors[0])));
+        }
+    } buf;
+#pragma pack(pop)
+    std::memset(&buf, 0, sizeof(buf));
+
+    // READ TOC/PMA/ATIP command
+#pragma pack(push, 1)
+    struct {
+        quint8 opcode;
+        quint8 reserved : 1;
+        quint8 msf : 1;
+        quint8 reserved1 : 6;
+        quint8 format : 4;
+        quint8 reserved2 : 4;
+        quint8 reserved3;
+        quint8 reserved4;
+        quint8 reserved5;
+        quint8 track_session_no;
+        quint8 allocation_length_msb;
+        quint8 allocation_length_lsb;
+        quint8 control;
+    } cmd;
+#pragma pack(pop)
+
+    std::memset(&cmd, 0, sizeof(cmd));
+    cmd.opcode = 0x43;
+    cmd.msf = 1;
+    cmd.format = 5;
+    cmd.track_session_no = 1;
+    cmd.allocation_length_msb = quint8(sizeof(buf) >> 8);
+    cmd.allocation_length_lsb = quint8(sizeof(buf) & 0xff);
+
+    if (!exec_scsi_command(&cmd, sizeof(cmd), (quint8*)&buf, sizeof(buf)))
+    {
+        qWarning() << "Could not read CD-TEXT: " << m_lastErr;
+        return;
+    }
+
+    // first of all: copy from reponse buffer to vector for further massaging
+    std::vector<cdtext_pack> packv;
+    packv.reserve(buf.descriptor_count());
+    for (int i = 0; i < buf.descriptor_count(); ++i)
+    {
+        //FIXME: skip anything by block 0
+        if (buf.cdtext_descriptors[i].block_no != 0)
+            continue;
+
+        //FIXME: skip multibyte stuff
+        if (buf.cdtext_descriptors[i].double_byte)
+            continue;
+
+        // TODO: verify CRC
+
+        packv.push_back(buf.cdtext_descriptors[i]);
+    }
+
+    // ensure everything is ordered by type, then by counter
+    // CD drives ususally return it that way, but the MMC spec doesn't actually guarantee it (I believe)
+    std::sort(packv.begin(), packv.end(), [](const cdtext_pack &a, const cdtext_pack &b) {
+        return a.pack_type < b.pack_type || a.counter < b.counter; });
+
+    // now parse it
+    QByteArray textcache;
+    textcache.reserve(160); // max size recommended in the spec
+    for (const auto &pack: packv)
+    {
+        if (pack.pack_type != 0x80 /* title */ && pack.pack_type != 0x81 /* artist */)
+            continue;
+
+        int track = pack.track_no;
+        for (int i = 0; i < 12; ++i)
+        {
+            if (pack.textdata[i])
+            {
+                textcache.push_back(pack.textdata[i]);
+            }
+            else if (textcache.size())
+            {
+                if (track == 0)
+                {
+                    if (pack.pack_type == 0x80 /* title */)
+                        toc.title = QString::fromLatin1(textcache);
+                    if (pack.pack_type == 0x81 /* artist */)
+                        toc.artist = QString::fromLatin1(textcache);
+                }
+                else
+                {
+                    int toci = toc.index_for_trackno(track);
+                    if (toci >= 0)
+                    {
+                        if (pack.pack_type == 0x80 /* title */)
+                            toc.tracks[toci].title = QString::fromLatin1(textcache);
+                        if (pack.pack_type == 0x81 /* artist */)
+                            toc.tracks[toci].artist = QString::fromLatin1(textcache);
+                    }
+                }
+
+                track++;
+                textcache.clear();
+            }
+        }
+    }
+}
+
 toc drive_handle::get_toc()
 {
     //==== Read TOC from SCSI
@@ -465,6 +598,9 @@ toc drive_handle::get_toc()
             qWarning() << "(NON-FATAL) failed to read ISRC for track" << track.index << ":" << last_error();
         }
     }
+
+    //=== search CD-TEXT
+    read_cd_text(retval);
 
     return retval;
 }

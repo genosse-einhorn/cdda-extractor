@@ -153,6 +153,9 @@ void MainWindow::beginExtract()
 
 void MainWindow::tocLoadSuccess(const QString &device, const cdda::toc &toc)
 {
+    ui->eArtist->setText(toc.artist);
+    ui->eTitle->setText(toc.title);
+
     m_trackmodel->reset(toc.tracks);
     m_trackmodel->setDevice(device);
     ui->tvTracks->setEnabled(true);

@@ -28,6 +28,8 @@ private:
 
     void cleanup();
 
+    void read_cd_text(toc &toc);
+
 public:
     drive_handle();
     drive_handle(drive_handle &&other);

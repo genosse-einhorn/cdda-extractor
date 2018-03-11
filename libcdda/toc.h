@@ -108,7 +108,9 @@ struct toc_track {
     // subchannel data
     QString isrc;
 
-    // TODO: CD-TEXT
+    // CD-TEXT
+    QString title;
+    QString artist;
 
     bool is_audio() const { return (control & 4) == 0; }
 };
@@ -117,7 +119,18 @@ struct toc {
     std::vector<toc_track> tracks;
     QString catalog;
 
-    bool is_valid() { return tracks.size() > 0; }
+    // CD-TEXT
+    QString title;
+    QString artist;
+
+    bool is_valid() const { return tracks.size() > 0; }
+    int index_for_trackno(int trackno) const
+    {
+        for (int i = 0; i < (int)tracks.size(); ++i)
+            if (tracks[i].index == trackno)
+                return i;
+        return -1;
+    }
 };
 
 struct track_metadata {
