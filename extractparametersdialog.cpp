@@ -1,10 +1,12 @@
 #include "extractparametersdialog.h"
 #include "ui_extractparametersdialog.h"
 #include "encoder/lame_backend.h"
+#include "win32iconloader.h"
 
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QDir>
+#include <QIcon>
 
 ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     QDialog(parent),
@@ -25,6 +27,40 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     {
         ui->lMp3->setText(tr("%1<br><font color=red>Not available, please install <code>libmp3lame</code></font>").arg(ui->lMp3->text()));
     }
+
+#ifdef Q_OS_WIN32
+    QIcon themeFolder = IconLoader::fromShellStock(SIID_FOLDER);
+#else
+    QIcon themeFolder = QIcon::fromTheme(QStringLiteral("folder"));
+#endif
+    if (!themeFolder.isNull())
+        ui->iwFolder->setIcon(themeFolder);
+    else
+        ui->iwFolder->setIcon(QIcon(QStringLiteral(":/inode-directory.svg")));
+
+#ifdef Q_OS_WIN32
+    QIcon themeDrive = IconLoader::fromShellStock(SIID_DRIVECD);
+#else
+    QIcon themeDrive = QIcon::fromTheme(QStringLiteral("drive-optical"));
+#endif
+    if (!themeDrive.isNull())
+        ui->iwCd->setIcon(themeDrive);
+    else
+        ui->iwCd->setIcon(QIcon(QStringLiteral(":/drive-cdrom.svg")));
+
+#ifdef Q_OS_WIN32
+    QIcon themeFormat = IconLoader::fromShellStock(SIID_AUDIOFILES);
+#else
+    QIcon themeFormat = QIcon::fromTheme(QStringLiteral("audio-x-generic"));
+#endif
+    if (!themeFormat.isNull())
+        ui->iwFileFormat->setIcon(themeFormat);
+    else
+        ui->iwFileFormat->setIcon(QIcon(QStringLiteral(":/audio-x-generic.svg")));
+
+    ui->iwFolder->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    ui->iwCd->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    ui->iwFileFormat->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 }
 
 ExtractParametersDialog::~ExtractParametersDialog()

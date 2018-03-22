@@ -1,5 +1,6 @@
 #include "extendederrordialog.h"
 #include "ui_extendederrordialog.h"
+#include "win32iconloader.h"
 
 #include <QIcon>
 
@@ -9,16 +10,15 @@ ExtendedErrorDialog::ExtendedErrorDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QIcon errorIcon = QIcon::fromTheme(QStringLiteral("dialog-error"));
-    if (!errorIcon.isNull())
-    {
-        QWindow *window = nullptr;
-        if (const QWidget *nativeParent = ui->lIcon->nativeParentWidget())
-            window = nativeParent->windowHandle();
+#ifdef Q_OS_WIN32
+    QIcon errorIcon = IconLoader::fromShellStock(SIID_ERROR);
+#else
+    QIcon errorIcon = this->style()->standardIcon(QStyle::SP_MessageBoxCritical);
+#endif
+    if (errorIcon.isNull())
+        errorIcon = QIcon::fromTheme(QStringLiteral("dialog-error"), QIcon(QStringLiteral(":/dialog-error.svg")));
 
-        QPixmap p = errorIcon.pixmap(window, ui->lIcon->size());
-        ui->lIcon->setPixmap(p);
-    }
+    ui->iwIcon->setIcon(errorIcon);
 }
 
 ExtendedErrorDialog::~ExtendedErrorDialog()

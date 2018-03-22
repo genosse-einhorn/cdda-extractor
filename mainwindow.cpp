@@ -60,6 +60,34 @@ MainWindow::MainWindow(QWidget *parent) :
     delete ui->hlToolbar;
     ui->hlToolbar = nullptr;
 
+    // set toolbar icons from standard pixmaps
+    QIcon themeRefresh = QIcon::fromTheme(QStringLiteral("view-refresh"));
+    QIcon standardRefresh = this->style()->standardIcon(QStyle::SP_BrowserReload);
+    if (!themeRefresh.isNull())
+        ui->tbRefresh->setIcon(themeRefresh);
+    else if (!standardRefresh.isNull())
+        ui->tbRefresh->setIcon(standardRefresh);
+    else
+        ui->tbRefresh->setIcon(QIcon(QStringLiteral(":/view-refresh.svg")));
+
+    QIcon themeSave = QIcon::fromTheme(QStringLiteral("document-save"));
+    QIcon standardSave = this->style()->standardIcon(QStyle::SP_DialogSaveButton);
+    if (!themeSave.isNull())
+        ui->tbExtract->setIcon(themeSave);
+    else if (!standardSave.isNull())
+        ui->tbExtract->setIcon(standardSave);
+    else
+        ui->tbRefresh->setIcon(QIcon(QStringLiteral(":/document-save.svg")));
+
+    QIcon themeHelp = QIcon::fromTheme(QStringLiteral("help-browser"));
+    QIcon standardHelp = this->style()->standardIcon(QStyle::SP_DialogHelpButton);
+    if (!themeHelp.isNull())
+        ui->tbMore->setIcon(themeHelp);
+    else if (!standardHelp.isNull())
+        ui->tbMore->setIcon(standardHelp);
+    else
+        ui->tbMore->setIcon(QIcon(QStringLiteral(":/help-browser.svg")));
+
     m_trackmodel = new TrackListModel(this);
     ui->tvTracks->setModel(m_trackmodel);
 

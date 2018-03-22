@@ -20,7 +20,7 @@
       <string>File Location</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="3" column="0" colspan="4">
+      <item row="1" column="1" colspan="4">
        <widget class="QCheckBox" name="cbCreateSubfolder">
         <property name="text">
          <string>Create subfolder: ARTIST/ALBUM</string>
@@ -30,14 +30,14 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="0" column="1">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Output directory:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="0" column="2">
        <widget class="QLineEdit" name="eOutputDirectory">
         <property name="enabled">
          <bool>false</bool>
@@ -47,10 +47,20 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
+      <item row="0" column="3">
        <widget class="QPushButton" name="bBrowseDir">
         <property name="text">
          <string>&amp;Browse...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" rowspan="2">
+       <widget class="IconWidget" name="iwFolder" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -63,14 +73,14 @@
       <string>CD Extraction</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="2" column="0">
+      <item row="1" column="1">
        <widget class="QRadioButton" name="rbParanoiaExtract">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="0" column="2">
        <widget class="ClickableBuddyLabel" name="label_8">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -87,7 +97,7 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
+      <item row="0" column="1">
        <widget class="QRadioButton" name="rbFastExtract">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -103,7 +113,7 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="1" column="2">
        <widget class="ClickableBuddyLabel" name="label_9">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -119,6 +129,16 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
         </property>
        </widget>
       </item>
+      <item row="0" column="0" rowspan="2">
+       <widget class="IconWidget" name="iwCd" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -128,7 +148,7 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
       <string>Audio File Format</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0">
+      <item row="1" column="1">
        <widget class="QRadioButton" name="rbFlac">
         <property name="text">
          <string/>
@@ -138,7 +158,7 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="2" column="2">
        <widget class="ClickableBuddyLabel" name="lMp3">
         <property name="enabled">
          <bool>false</bool>
@@ -152,7 +172,7 @@ Lossy compression with potentially audible quality degradation.</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="2" column="1">
        <widget class="QRadioButton" name="rbMp3">
         <property name="enabled">
          <bool>false</bool>
@@ -162,7 +182,7 @@ Lossy compression with potentially audible quality degradation.</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="1" column="2">
        <widget class="ClickableBuddyLabel" name="label_3">
         <property name="text">
          <string>&lt;b&gt;F&amp;LAC&lt;/b&gt; (.flac)&lt;br&gt;
@@ -173,7 +193,7 @@ Lossless compression. Recommended, but not all players can handle it.</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="3" column="2">
        <widget class="ClickableBuddyLabel" name="label_2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -190,10 +210,20 @@ Uncompressed file format without metadata. Not recommended.</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="3" column="1">
        <widget class="QRadioButton" name="rbWav">
         <property name="checked">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" rowspan="3">
+       <widget class="IconWidget" name="iwFileFormat" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -260,6 +290,12 @@ Uncompressed file format without metadata. Not recommended.</string>
    <class>ClickableBuddyLabel</class>
    <extends>QLabel</extends>
    <header>clickablebuddylabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>IconWidget</class>
+   <extends>QWidget</extends>
+   <header>iconwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>

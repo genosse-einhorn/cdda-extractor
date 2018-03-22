@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui concurrent widgets svg
+win32: QT += winextras
 
 TARGET = KuemCddaExtract
 TEMPLATE = app
@@ -13,7 +14,8 @@ CONFIG += link_pkgconfig c++11
 
 QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
-msvc: QMAKE_CXXFLAGS += /utf-8
+msvc: QMAKE_CXXFLAGS += /utf-8 /wd4200
+win32: LIBS += -luser32 -lshell32
 
 # paranoia code contains lots of unused parameters and troublesome conversions
 msvc {
@@ -55,7 +57,9 @@ SOURCES += main.cpp\
     paranoia/p_block.c \
     paranoia/paranoia.c \
     encoder/flacencoder.cpp \
-    encoder/lameencoder.cpp
+    encoder/lameencoder.cpp \
+    iconwidget.cpp \
+    win32iconloader.cpp
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
@@ -83,7 +87,9 @@ HEADERS  += mainwindow.h \
     paranoia/cdda_interface.h \
     encoder/flacencoder.h \
     encoder/lame_backend.h \
-    encoder/lameencoder.h
+    encoder/lameencoder.h \
+    iconwidget.h \
+    win32iconloader.h
 
 FORMS    += mainwindow.ui \
     extendederrordialog.ui \

@@ -5,5 +5,8 @@
         <file>document-save.svg</file>
         <file>view-refresh.svg</file>
         <file>help-browser.svg</file>
+        <file>audio-x-generic.svg</file>
+        <file>drive-cdrom.svg</file>
+        <file>inode-directory.svg</file>
     </qresource>
 </RCC>
