@@ -289,12 +289,12 @@ Uncompressed file format without metadata. Not recommended.</string>
   <customwidget>
    <class>ClickableBuddyLabel</class>
    <extends>QLabel</extends>
-   <header>clickablebuddylabel.h</header>
+   <header>uiutil/clickablebuddylabel.h</header>
   </customwidget>
   <customwidget>
    <class>IconWidget</class>
    <extends>QWidget</extends>
-   <header>iconwidget.h</header>
+   <header>uiutil/iconwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

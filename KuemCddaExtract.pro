@@ -37,9 +37,7 @@ SOURCES += main.cpp\
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
     tracklistmodel.cpp \
-    extendederrordialog.cpp \
     extractparametersdialog.cpp \
-    clickablebuddylabel.cpp \
     libcdda/toc_finder.cpp \
     libcdda/sense.cpp \
     extractrunner.cpp \
@@ -47,7 +45,6 @@ SOURCES += main.cpp\
     libcdda/os_util.cpp \
     encoder/abstractencoder.cpp \
     encoder/wavencoder.cpp \
-    progressdialog.cpp \
     coverartwidget.cpp \
     musicbrainz/urldownloader.cpp \
     musicbrainz/releasefinder.cpp \
@@ -58,16 +55,17 @@ SOURCES += main.cpp\
     paranoia/paranoia.c \
     encoder/flacencoder.cpp \
     encoder/lameencoder.cpp \
-    iconwidget.cpp \
-    win32iconloader.cpp
+    uiutil/progressdialog.cpp \
+    uiutil/clickablebuddylabel.cpp \
+    uiutil/extendederrordialog.cpp \
+    uiutil/iconwidget.cpp \
+    uiutil/win32iconloader.cpp
 
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     tracklistmodel.h \
-    extendederrordialog.h \
     extractparametersdialog.h \
-    clickablebuddylabel.h \
     libcdda/toc_finder.h \
     libcdda/sense.h \
     extractrunner.h \
@@ -75,7 +73,6 @@ HEADERS  += mainwindow.h \
     libcdda/os_util.h \
     encoder/abstractencoder.h \
     encoder/wavencoder.h \
-    progressdialog.h \
     coverartwidget.h \
     musicbrainz/urldownloader.h \
     musicbrainz/releasefinder.h \
@@ -88,13 +85,16 @@ HEADERS  += mainwindow.h \
     encoder/flacencoder.h \
     encoder/lame_backend.h \
     encoder/lameencoder.h \
-    iconwidget.h \
-    win32iconloader.h
+    uiutil/clickablebuddylabel.h \
+    uiutil/extendederrordialog.h \
+    uiutil/iconwidget.h \
+    uiutil/progressdialog.h \
+    uiutil/win32iconloader.h
 
 FORMS    += mainwindow.ui \
-    extendederrordialog.ui \
     extractparametersdialog.ui \
-    progressdialog.ui
+    progressdialog.ui \
+    uiutil/extendederrordialog.ui
 
 RESOURCES += \
     data/data.qrc

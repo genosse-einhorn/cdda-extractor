@@ -300,7 +300,7 @@
   <customwidget>
    <class>ClickableBuddyLabel</class>
    <extends>QLabel</extends>
-   <header>clickablebuddylabel.h</header>
+   <header>uiutil/clickablebuddylabel.h</header>
   </customwidget>
   <customwidget>
    <class>CoverArtWidget</class>

@@ -4,10 +4,10 @@
 #include "libcdda/drive_handle.h"
 #include "musicbrainz/releasefinder.h"
 #include "tracklistmodel.h"
-#include "extendederrordialog.h"
+#include "uiutil/extendederrordialog.h"
 #include "extractparametersdialog.h"
 #include "extractrunner.h"
-#include "progressdialog.h"
+#include "uiutil/progressdialog.h"
 
 #include <QMessageBox>
 #include <QMenu>

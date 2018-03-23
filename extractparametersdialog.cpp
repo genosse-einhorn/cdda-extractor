@@ -1,7 +1,7 @@
 #include "extractparametersdialog.h"
 #include "ui_extractparametersdialog.h"
 #include "encoder/lame_backend.h"
-#include "win32iconloader.h"
+#include "uiutil/win32iconloader.h"
 
 #include <QStandardPaths>
 #include <QFileDialog>
