@@ -7,12 +7,6 @@ ProgressDialog::ProgressDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    /*ui->label->setBackgroundRole(QPalette::Base);
-    ui->label->setForegroundRole(QPalette::Text);
-    ui->label->setAutoFillBackground(true);
-    ui->progressBar->setBackgroundRole(QPalette::Base);
-    ui->progressBar->setForegroundRole(QPalette::Text);
-    ui->progressBar->setAutoFillBackground(true);*/
     ui->progressBarContainer->setBackgroundRole(QPalette::Base);
     ui->progressBarContainer->setForegroundRole(QPalette::Text);
     ui->progressBarContainer->setAutoFillBackground(true);
