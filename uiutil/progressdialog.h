@@ -7,6 +7,8 @@ namespace Ui {
 class ProgressDialog;
 }
 
+class QWinTaskbarButton;
+
 /*
  * Why not QProgressDialog? Because QProgressDialog can't be prevented from closing.
  * We want to close the dialog only after the operation has truly finished, not as soon
@@ -48,9 +50,16 @@ private:
     bool m_canceled { false };
     Ui::ProgressDialog *ui;
 
+#ifdef Q_OS_WIN32
+    QWinTaskbarButton *m_taskbarButton;
+#endif
+
+    void fixupUi();
+
     // QWidget interface
 protected:
     void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
     // QDialog interface
 public slots:
