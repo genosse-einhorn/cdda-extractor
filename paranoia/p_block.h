@@ -1,5 +1,5 @@
 /***
- * CopyPolicy: GNU Public License 2 applies
+ * CopyPolicy: GNU Lesser General Public License 2.1 applies
  * Copyright (C) by Monty (xiphmont@mit.edu)
  ***/
 
@@ -16,9 +16,10 @@
 #define MIN_SECTOR_BACKUP    16     /* sectors */
 #define JIGGLE_MODULO        15     /* sectors */
 #define MIN_SILENCE_BOUNDARY 1024   /* 16 bit words */
+#define CACHEMODEL_SECTORS   1200
 
-#define prna_min(x,y) ((x)>(y)?(y):(x))
-#define prna_max(x,y) ((x)<(y)?(y):(x))
+#define min(x,y) ((x)>(y)?(y):(x))
+#define max(x,y) ((x)<(y)?(y):(x))
 
 #include "isort.h"
 
@@ -27,7 +28,7 @@ typedef struct linked_list{
   struct linked_element *head;
   struct linked_element *tail;
 
-  void *(*new_poly)(void);
+  void *(*new_poly)();
   void (*free_poly)(void *poly);
   long current;
   long active;
@@ -141,9 +142,11 @@ typedef struct cdrom_paranoia{
   linked_list *fragments; /* fragments of blocks that have been 'verified' */
   sort_info *sortcache;
 
-  int readahead;          /* sectors of readahead in each readop */
+  /* cache tracking */
+  int cdcache_size;
+  int cdcache_begin;
+  int cdcache_end;
   int jitter;           
-  long lastread;
 
   int enable;
   long cursor;

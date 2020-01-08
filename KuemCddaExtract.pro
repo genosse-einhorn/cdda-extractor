@@ -53,6 +53,7 @@ SOURCES += main.cpp\
     paranoia/overlap.c \
     paranoia/p_block.c \
     paranoia/paranoia.c \
+    paranoia/smallft.c \
     encoder/flacencoder.cpp \
     encoder/lameencoder.cpp \
     uiutil/progressdialog.cpp \
@@ -82,6 +83,7 @@ HEADERS  += mainwindow.h \
     paranoia/p_block.h \
     paranoia/paranoia.h \
     paranoia/cdda_interface.h \
+    paranoia/smallft.h \
     encoder/flacencoder.h \
     encoder/lame_backend.h \
     encoder/lameencoder.h \

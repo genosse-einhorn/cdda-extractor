@@ -1,13 +1,11 @@
 /***
- * CopyPolicy: GNU Public License 2 applies
+ * CopyPolicy: GNU Lesser General Public License 2.1 applies
  * Copyright (C) by Monty (xiphmont@mit.edu)
  *
  ***/
 
 #ifndef _CDROM_PARANOIA_
 #define _CDROM_PARANOIA_
-
-#include "cdda_interface.h"
 
 #define CD_FRAMEWORDS (CD_FRAMESIZE_RAW/2)
 
@@ -24,6 +22,7 @@
 #define PARANOIA_CB_FIXUP_DROPPED 10
 #define PARANOIA_CB_FIXUP_DUPED   11
 #define PARANOIA_CB_READERR       12
+#define PARANOIA_CB_CACHEERR      13
 
 #define PARANOIA_MODE_FULL        0xff
 #define PARANOIA_MODE_DISABLE     0
@@ -39,10 +38,15 @@
 typedef void cdrom_paranoia;
 #endif
 
+#include <stdio.h>
+
+#include "cdda_interface.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern char *paranoia_version();
 extern cdrom_paranoia *paranoia_init(cdrom_drive *d);
 extern void paranoia_modeset(cdrom_paranoia *p,int mode);
 extern long paranoia_seek(cdrom_paranoia *p,long seek,int mode);
@@ -50,10 +54,11 @@ extern int16_t *paranoia_read(cdrom_paranoia *p,void(*callback)(long,int));
 extern int16_t *paranoia_read_limited(cdrom_paranoia *p,void(*callback)(long,int),int maxretries);
 extern void paranoia_free(cdrom_paranoia *p);
 extern void paranoia_overlapset(cdrom_paranoia *p,long overlap);
-extern void paranoia_set_range(cdrom_paranoia *p, long start, long end);
+extern int paranoia_cachemodel_size(cdrom_paranoia *p,int sectors);
+extern void paranoia_set_range(cdrom_paranoia *p, long firstsector, long lastsector);
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif
 
 #endif

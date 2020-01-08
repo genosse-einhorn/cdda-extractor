@@ -137,7 +137,7 @@ private:
         if (self->m_handle.read(buffer, cdda::block_addr::from_lba(int(start)), cdda::block_addr_delta::from_lba(int(len))))
             return len;
         else
-            return 0L;
+            return -1L;
     }
 
 public:
@@ -147,6 +147,7 @@ public:
         m_paranoiaDrive.cdda_read_func = &ParanoiaReader::paranoiaReadfunc;
         m_paranoiaDrive.userdata = this;
         m_paranoiaDrive.nsectors = 10; // FIXME: Why? It works, but I'd like to know why higher values don't work
+        m_paranoiaDrive.firstsector = start.block; // FIXME! should use first sector of whole disc
 
         m_paranoiaHandle = paranoia_init(&m_paranoiaDrive);
         paranoia_modeset(m_paranoiaHandle, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);

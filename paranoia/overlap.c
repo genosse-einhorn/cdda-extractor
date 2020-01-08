@@ -1,5 +1,5 @@
 /***
- * CopyPolicy: GNU Public License 2 applies
+ * CopyPolicy: GNU Lesser General Public License 2.1 applies
  * Copyright (C) by Monty (xiphmont@mit.edu)
  *
  * Statistic code and cache management for overlap settings
@@ -89,13 +89,25 @@ rootfree:
 
 /**** Statistical and heuristic[al? :-] management ************************/
 
+/* ===========================================================================
+ * offset_adjust_settings (internal)
+ *
+ * This function is called by offset_add_value() every time 10 samples have
+ * been accumulated.  This function updates the internal statistics for
+ * paranoia (dynoverlap, dyndrift) that compensate for jitter and drift.
+ *
+ * (dynoverlap) influences how far stage 1 and stage 2 search for matching
+ * runs.  In low-jitter conditions, it will be very small (or even 0),
+ * narrowing our search.  In high-jitter conditions, it will be much larger,
+ * widening our search at the cost of speed.
+ */
 void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
   if(p->stage2.offpoints>=10){
     /* drift: look at the average offset value.  If it's over one
        sector, frob it.  We just want a little hysteresis [sp?]*/
     long av=(p->stage2.offpoints?p->stage2.offaccum/p->stage2.offpoints:0);
     
-    if(abs(av)>p->dynoverlap/4){
+    if(labs(av)>p->dynoverlap/4){
       av=(av/MIN_SECTOR_EPSILON)*MIN_SECTOR_EPSILON;
       
       if(callback)(*callback)(ce(p->root.vector),PARANOIA_CB_DRIFT);
@@ -117,7 +129,7 @@ void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
 	  v=v_next(v);
 	}
 	while(c){
-	  long adj=prna_min(av,cb(c));
+	  long adj=min(av,cb(c));
 	  c_set(c,cb(c)-adj);
 	  c=c_next(c);
 	}
@@ -164,17 +176,49 @@ void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
   }
 }
 
+
+/* ===========================================================================
+ * offset_add_value (internal)
+ *
+ * This function adds the given jitter detected (value) to the statistics
+ * for the given stage (o).  It is called whenever jitter has been identified
+ * by stage 1 or 2.  After every 10 samples, we update the overall jitter-
+ * compensation settings (e.g. dynoverlap).  This allows us to narrow our
+ * search for matching runs (in both stages) in low-jitter conditions
+ * and also widen our search appropriately when there is jitter.
+ *
+ *
+ * "???BUG???:
+ * Note that there is a bug in the way that this is called by try_sort_sync().
+ * Silence looks like zero jitter, and dynoverlap may be incorrectly reduced
+ * when there's lots of silence but also jitter."
+ *
+ * Strictly speaking, this is only sort-of true.  The silence will
+ * incorrectly somewhat reduce dynoverlap.  However, it will increase
+ * again once past the silence (even if reduced to zero, it will be
+ * increased by the block read loop if we're not getting matches).
+ * In reality, silence usually passes rapidly.  Anyway, long streaks
+ * of silence benefit performance-wise from having dynoverlap decrease
+ * momentarily. There is no correctness bug. --Monty
+ *
+ */
 void offset_add_value(cdrom_paranoia *p,offsets *o,long value,
 			     void(*callback)(long,int)){
   if(o->offpoints!=-1){
 
-    o->offdiff+=abs(value);
+    /* Track the average magnitude of jitter (in either direction) */
+    o->offdiff+=labs(value);
     o->offpoints++;
     o->newpoints++;
+
+    /* Track the net value of the jitter (to track drift) */
     o->offaccum+=value;
+
+    /* Track the largest jitter we've encountered in each direction */
     if(value<o->offmin)o->offmin=value;
     if(value>o->offmax)o->offmax=value;
-    
+
+    /* After 10 samples, update dynoverlap, etc. */
     if(o->newpoints>=10)offset_adjust_settings(p,callback);
   }
 }
