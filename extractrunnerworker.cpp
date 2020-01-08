@@ -265,8 +265,7 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
     }
 
     // really simple pre-gap detection: chop off silence from the end
-    qint64 silentSamples = 0;
-    qint16 silentBuf[200] = {};
+    qint64 trailingSilentSamples = 0;
 
     // loop for reading and encoding audio data
     while (!reader->eof())
@@ -281,26 +280,27 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
 
         // pre-gap detection
         qint64 samples = 588*buflen.delta_blocks;
-        while (samples > 0 && !buf[0] && !buf[1])
+        qint64 silentSamplesThisBuf = 0;
+        while (samples > 0 && !buf[2*samples-1] && !buf[2*samples-2])
         {
             samples--;
-            silentSamples++;
-            buf += 2;
+            silentSamplesThisBuf++;
         }
 
         if (samples)
         {
             // write buffered silent samples
-            while (silentSamples > 0)
+            while (trailingSilentSamples > 0)
             {
-                qint64 n = std::min(silentSamples, qint64(sizeof(silentBuf)/sizeof(silentBuf[0]))/2);
+                qint16 silentBuf[200] = {};
+                qint64 n = std::min(trailingSilentSamples, qint64(sizeof(silentBuf)/sizeof(silentBuf[0]))/2);
                 if (!encoder->feed(silentBuf, n))
                 {
                     emit failed(tr("Failed while encoding audio: %1").arg(encoder->errorText()));
                     return;
                 }
 
-                silentSamples -= n;
+                trailingSilentSamples -= n;
             }
 
             // encode it
@@ -310,6 +310,8 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
                 return;
             }
         }
+
+        trailingSilentSamples += silentSamplesThisBuf;
 
         emit progress(buflen);
 
