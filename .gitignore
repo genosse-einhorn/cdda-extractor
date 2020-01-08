@@ -1,1 +1,4 @@
 *.pro.user
+*.pro.user.*
+*.qmake.stash
+config.tests/*/Makefile
