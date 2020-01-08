@@ -94,7 +94,7 @@ void sort_free(sort_info *i){
   free(i->bucketusage);
   free(i);
 }
- 
+
 
 /* ===========================================================================
  * sort_sort() (internal)
@@ -139,7 +139,7 @@ static void sort_sort(sort_info *i,long sortlo,long sorthi){
     /* Point the new node at the old head, then assign the new node as
      * the new head.
      */
-    l->next=*hv;    
+    l->next=*hv;
     *hv=l;
   }
 
@@ -164,7 +164,7 @@ static void sort_sort(sort_info *i,long sortlo,long sorthi){
  */
 
 void sort_setup(sort_info *i,int16_t *vector,long *abspos,
-		long size,long sortlo,long sorthi){
+                long size,long sortlo,long sorthi){
   /* Reset the index if it has already been built.
    */
   if(i->sortbegin!=-1)sort_unsortall(i);
@@ -200,7 +200,7 @@ sort_link *sort_getmatch(sort_info *i,long post,long overlap,int value){
    */
   if(i->sortbegin==-1)sort_sort(i,i->lo,i->hi);
   /* Now we reuse lo and hi */
-  
+
   /* We'll only return samples within (overlap) samples of (post).
    * Clamp the boundaries to search to the boundaries of the array,
    * convert the signed sample to an unsigned offset, and store the
@@ -228,7 +228,7 @@ sort_link *sort_getmatch(sort_info *i,long post,long overlap,int value){
       ret=ret->next;
     }else{
       if(ipos(i,ret)>=i->hi)
-	ret=NULL;
+        ret=NULL;
       break;
     }
   }
@@ -253,7 +253,7 @@ sort_link *sort_nextmatch(sort_info *i,sort_link *prev){
   /* If there aren't any more hits, or we've passed the boundary requested
    * of sort_getmatch(), we're done.
    */
-  if(!ret || ipos(i,ret)>=i->hi)return(NULL); 
+  if(!ret || ipos(i,ret)>=i->hi)return(NULL);
 
   return(ret);
 }

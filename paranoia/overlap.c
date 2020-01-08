@@ -54,37 +54,37 @@ void i_paranoia_trim(cdrom_paranoia *p,long beginword,long endword){
 
     if(rbegin>beginword)
       goto rootfree;
-    
+
     if(rbegin+MAX_SECTOR_OVERLAP*CD_FRAMEWORDS<beginword){
       if(target+MIN_WORDS_OVERLAP>rend)
-	goto rootfree;
+        goto rootfree;
 
       {
-	long offset=target-rbegin;
-	c_removef(root->vector,offset);
+        long offset=target-rbegin;
+        c_removef(root->vector,offset);
       }
     }
 
     {
       c_block *c=c_first(p);
       while(c){
-	c_block *next=c_next(c);
-	if(ce(c)<beginword-MAX_SECTOR_OVERLAP*CD_FRAMEWORDS)
-	  free_c_block(c);
-	c=next;
+        c_block *next=c_next(c);
+        if(ce(c)<beginword-MAX_SECTOR_OVERLAP*CD_FRAMEWORDS)
+          free_c_block(c);
+        c=next;
       }
     }
 
   }
   return;
-  
+
 rootfree:
 
   i_cblock_destructor(root->vector);
   root->vector=NULL;
   root->returnedlimit=-1;
   root->lastsector=0;
-  
+
 }
 
 /**** Statistical and heuristic[al? :-] management ************************/
@@ -106,33 +106,33 @@ void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
     /* drift: look at the average offset value.  If it's over one
        sector, frob it.  We just want a little hysteresis [sp?]*/
     long av=(p->stage2.offpoints?p->stage2.offaccum/p->stage2.offpoints:0);
-    
+
     if(labs(av)>p->dynoverlap/4){
       av=(av/MIN_SECTOR_EPSILON)*MIN_SECTOR_EPSILON;
-      
+
       if(callback)(*callback)(ce(p->root.vector),PARANOIA_CB_DRIFT);
       p->dyndrift+=av;
-      
-      /* Adjust all the values in the cache otherwise we get a
-	 (potentially unstable) feedback loop */
-      {
-	c_block *c=c_first(p);
-	v_fragment *v=v_first(p);
 
-	while(v && v->one){
-	  /* safeguard beginning bounds case with a hammer */
-	  if(fb(v)<av || cb(v->one)<av){
-	    v->one=NULL;
-	  }else{
-	    fb(v)-=av;
-	  }
-	  v=v_next(v);
-	}
-	while(c){
-	  long adj=min(av,cb(c));
-	  c_set(c,cb(c)-adj);
-	  c=c_next(c);
-	}
+      /* Adjust all the values in the cache otherwise we get a
+         (potentially unstable) feedback loop */
+      {
+        c_block *c=c_first(p);
+        v_fragment *v=v_first(p);
+
+        while(v && v->one){
+          /* safeguard beginning bounds case with a hammer */
+          if(fb(v)<av || cb(v->one)<av){
+            v->one=NULL;
+          }else{
+            fb(v)-=av;
+          }
+          v=v_next(v);
+        }
+        while(c){
+          long adj=min(av,cb(c));
+          c_set(c,cb(c)-adj);
+          c=c_next(c);
+        }
       }
 
       p->stage2.offaccum=0;
@@ -149,23 +149,23 @@ void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
        value, unless min/max are more */
 
     p->dynoverlap=(p->stage1.offpoints?p->stage1.offdiff/
-		   p->stage1.offpoints*3:CD_FRAMEWORDS);
+                   p->stage1.offpoints*3:CD_FRAMEWORDS);
 
     if(p->dynoverlap<-p->stage1.offmin*1.5)
       p->dynoverlap=-p->stage1.offmin*1.5;
-						     
+
     if(p->dynoverlap<p->stage1.offmax*1.5)
       p->dynoverlap=p->stage1.offmax*1.5;
 
     if(p->dynoverlap<MIN_SECTOR_EPSILON)p->dynoverlap=MIN_SECTOR_EPSILON;
     if(p->dynoverlap>MAX_SECTOR_OVERLAP*CD_FRAMEWORDS)
       p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
-    			     
+
     if(callback)(*callback)(p->dynoverlap,PARANOIA_CB_OVERLAP);
 
     if(p->stage1.offpoints>600){ /* bit of a bug; this routine is
-				    called too often due to the overlap 
-				    mesh alg we use in stage 1 */
+                                    called too often due to the overlap
+                                    mesh alg we use in stage 1 */
       p->stage1.offpoints/=1.2;
       p->stage1.offaccum/=1.2;
       p->stage1.offdiff/=1.2;
@@ -203,7 +203,7 @@ void offset_adjust_settings(cdrom_paranoia *p, void(*callback)(long,int)){
  *
  */
 void offset_add_value(cdrom_paranoia *p,offsets *o,long value,
-			     void(*callback)(long,int)){
+                             void(*callback)(long,int)){
   if(o->offpoints!=-1){
 
     /* Track the average magnitude of jitter (in either direction) */

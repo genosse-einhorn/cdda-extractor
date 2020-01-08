@@ -61,7 +61,7 @@ extern void sort_unsortall(sort_info *i);
  * but no error checking is done here.
  */
 extern void sort_setup(sort_info *i,int16_t *vector,long *abspos,long size,
-		       long sortlo, long sorthi);
+                       long sortlo, long sorthi);
 
 /* =========================================================================
  * sort_free()

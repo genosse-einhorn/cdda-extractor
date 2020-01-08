@@ -39,7 +39,7 @@ typedef struct linked_element{
   void *ptr;
   struct linked_element *prev;
   struct linked_element *next;
-  
+
   struct linked_list *list;
   int stamp;
 } linked_element;
@@ -51,7 +51,7 @@ extern void free_list(linked_list *list,int free_ptr); /* unlink or free */
 extern void free_elem(linked_element *e,int free_ptr); /* unlink or free */
 extern void *get_elem(linked_element *e);
 extern linked_list *copy_list(linked_list *list); /* shallow; doesn't copy
-						     contained structures */
+                                                     contained structures */
 
 typedef struct c_block{
   /* The buffer */
@@ -61,14 +61,14 @@ typedef struct c_block{
 
   /* auxiliary support structures */
   unsigned char *flags; /* 1    known boundaries in read data
-			   2    known blanked data
-			   4    matched sample
-			   8    reserved
-			   16   reserved
-			   32   reserved
-			   64   reserved
-			   128  reserved
-			 */
+                           2    known blanked data
+                           4    matched sample
+                           8    reserved
+                           16   reserved
+                           32   reserved
+                           64   reserved
+                           128  reserved
+                         */
 
   /* end of session cases */
   long lastsector;
@@ -99,7 +99,7 @@ typedef struct v_fragment{
 
 extern void free_v_fragment(v_fragment *c);
 extern v_fragment *new_v_fragment(struct cdrom_paranoia *p,c_block *one,
-				  long begin, long end, int lastsector);
+                                  long begin, long end, int lastsector);
 extern int16_t *v_buffer(v_fragment *v);
 
 extern c_block *c_first(struct cdrom_paranoia *p);
@@ -113,7 +113,7 @@ extern v_fragment *v_next(v_fragment *v);
 extern v_fragment *v_prev(v_fragment *v);
 
 typedef struct root_block{
-  long returnedlimit;   
+  long returnedlimit;
   long lastsector;
   struct cdrom_paranoia *p;
 
@@ -123,7 +123,7 @@ typedef struct root_block{
 } root_block;
 
 typedef struct offsets{
-  
+
   long offpoints;
   long newpoints;
   long offaccum;
@@ -146,7 +146,7 @@ typedef struct cdrom_paranoia{
   int cdcache_size;
   int cdcache_begin;
   int cdcache_end;
-  int jitter;           
+  int jitter;
 
   int enable;
   long cursor;
