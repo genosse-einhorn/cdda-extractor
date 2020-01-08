@@ -3,6 +3,7 @@
 #include "win32iconloader.h"
 
 #include <QIcon>
+#include <QStyle>
 
 ExtendedErrorDialog::ExtendedErrorDialog(QWidget *parent) :
     QDialog(parent),
