@@ -93,15 +93,20 @@ private:
     cdda::block_addr m_pos;
     cdda::block_addr_delta m_remaining;
     qint16 m_buffer[588*2*20]; // FIXME: why 20 blocks?
+    bool *m_cancelPtr { nullptr };
 
 public:
-    RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len)
-        : m_handle(handle), m_pos(start), m_remaining(len)
+    RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, bool *cancelPtr = nullptr)
+        : m_handle(handle), m_pos(start), m_remaining(len), m_cancelPtr(cancelPtr)
     {}
 
     bool eof() override { return m_remaining.delta_blocks <= 0; }
     bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) override
     {
+        QCoreApplication::processEvents();
+        if (m_cancelPtr && *m_cancelPtr)
+            return false;
+
         auto count = std::min(cdda::block_addr_delta::from_lba(int(sizeof(m_buffer)/2352)), m_remaining);
         if (m_handle.read(m_buffer, m_pos, count))
         {
@@ -118,7 +123,17 @@ public:
             return false;
         }
     }
-    QString errorMessage() override { return m_handle.last_error(); }
+    QString errorMessage() override
+    {
+        if (m_cancelPtr && *m_cancelPtr)
+        {
+            return ExtractRunnerWorker::tr("Canceled by user");
+        }
+        else
+        {
+            return m_handle.last_error();
+        }
+    }
 };
 
 class ParanoiaReader : public ReaderBase
@@ -126,13 +141,19 @@ class ParanoiaReader : public ReaderBase
 private:
     cdda::drive_handle &m_handle;
     int m_blocksRemaining;
+    bool *m_canceledPtr = nullptr;
 
-    cdrom_drive m_paranoiaDrive;
     cdrom_paranoia *m_paranoiaHandle;
 
     static long paranoiaReadfunc(void *userdata, void *buffer, long start, long len)
     {
         auto self = (ParanoiaReader*)userdata;
+
+        // paranoia will internally do many reads of damaged sectors or jittery read
+        // do some event processing to make cancel work
+        QCoreApplication::processEvents();
+        if (self->m_canceledPtr && *self->m_canceledPtr)
+            return CDDA_ERROR_CANCELED;
 
         if (self->m_handle.read(buffer, cdda::block_addr::from_lba(int(start)), cdda::block_addr_delta::from_lba(int(len))))
             return len;
@@ -141,15 +162,13 @@ private:
     }
 
 public:
-    ParanoiaReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len)
-        : m_handle(handle)
+    ParanoiaReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, bool *canceledPtr = nullptr)
+        : m_handle(handle), m_canceledPtr(canceledPtr)
     {
-        m_paranoiaDrive.cdda_read_func = &ParanoiaReader::paranoiaReadfunc;
-        m_paranoiaDrive.userdata = this;
-        m_paranoiaDrive.nsectors = 10; // FIXME: Why? It works, but I'd like to know why higher values don't work
-        m_paranoiaDrive.firstsector = start.block; // FIXME! should use first sector of whole disc
-
-        m_paranoiaHandle = paranoia_init(&m_paranoiaDrive);
+        m_paranoiaHandle = paranoia_init(&ParanoiaReader::paranoiaReadfunc,
+                                         this,
+                                         10, // FIXME: Why? It works, but I'd like to know why higher values don't work
+                                         start.block, (start+len).block - 1); // FIXME! should use first and last sector of whole disc
         paranoia_modeset(m_paranoiaHandle, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);
         paranoia_set_range(m_paranoiaHandle, start.block, (start+len).block - 1);
 
@@ -175,7 +194,17 @@ public:
             return false;
         }
     }
-    QString errorMessage() override { return m_handle.last_error(); }
+    QString errorMessage() override
+    {
+        if (m_canceledPtr && *m_canceledPtr)
+        {
+            return ExtractRunnerWorker::tr("Canceled by user");
+        }
+        else
+        {
+            return m_handle.last_error();
+        }
+    }
 };
 
 } // anonymous namespace
@@ -257,11 +286,11 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
 
     if (m_paranoiaMode)
     {
-        reader.reset(new ParanoiaReader(m_handle, start, length));
+        reader.reset(new ParanoiaReader(m_handle, start, length, &m_cancelRequested));
     }
     else
     {
-        reader.reset(new RawReader(m_handle, start, length));
+        reader.reset(new RawReader(m_handle, start, length, &m_cancelRequested));
     }
 
     // really simple pre-gap detection: chop off silence from the end
@@ -314,13 +343,6 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
         trailingSilentSamples += silentSamplesThisBuf;
 
         emit progress(buflen);
-
-        QCoreApplication::processEvents();
-        if (m_cancelRequested)
-        {
-            emit failed(tr("Canceled by user."));
-            return;
-        }
     }
 
     // finalize encoding

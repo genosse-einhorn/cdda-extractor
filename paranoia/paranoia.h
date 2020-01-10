@@ -34,20 +34,25 @@
 #define PARANOIA_MODE_REPAIR      16
 #define PARANOIA_MODE_NEVERSKIP   32
 
+#define CDDA_ERROR_UNSPECIFIED (-1)
+#define CDDA_ERROR_NOMEDIUM    (-2)
+#define CDDA_ERROR_CANCELED    (-3)
+
 #ifndef CDP_COMPILE
 typedef void cdrom_paranoia;
 #endif
 
-#include <stdio.h>
-
-#include "cdda_interface.h"
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern char *paranoia_version();
-extern cdrom_paranoia *paranoia_init(cdrom_drive *d);
+extern cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void */*cdda_closure*/, void */*buffer*/, long /*begin*/, long /*sectors*/),
+                                     void *cdda_closure,
+                                     int nsectors,
+                                     long firstsector, long lastsector);
 extern void paranoia_modeset(cdrom_paranoia *p,int mode);
 extern long paranoia_seek(cdrom_paranoia *p,long seek,int mode);
 extern int16_t *paranoia_read(cdrom_paranoia *p,void(*callback)(long,int));

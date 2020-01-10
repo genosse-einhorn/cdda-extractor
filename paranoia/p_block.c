@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 #include "p_block.h"
-#include "cdda_interface.h"
 #include "paranoia.h"
 
 linked_list *new_list(void *(*newp)(void),void (*freep)(void *)){
@@ -282,7 +282,10 @@ void c_removef(c_block *v, long cut){
 
 /**** Initialization *************************************************/
 
-cdrom_paranoia *paranoia_init(cdrom_drive *d){
+cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void */*cdda_closure*/, void */*buffer*/, long /*begin*/, long /*sectors*/),
+                              void *cdda_closure,
+                              int nsectors,
+                              long firstsector, long lastsector){
   cdrom_paranoia *p=calloc(1,sizeof(cdrom_paranoia));
 
   p->cache=new_list((void *)&i_cblock_constructor,
@@ -295,7 +298,11 @@ cdrom_paranoia *paranoia_init(cdrom_drive *d){
   p->cdcache_end= 9999999;
   p->cdcache_size=CACHEMODEL_SECTORS;
   p->sortcache=sort_alloc(p->cdcache_size*CD_FRAMEWORDS);
-  p->d=d;
+  p->cdda_closure=cdda_closure;
+  p->cdda_read_func=cdda_read_func;
+  p->cdda_nsectors=nsectors;
+  p->cdda_disc_firstsector=firstsector;
+  p->cdda_disc_lastsector=lastsector;
   p->dynoverlap=MAX_SECTOR_OVERLAP*CD_FRAMEWORDS;
   p->cache_limit=JIGGLE_MODULO;
   p->enable=PARANOIA_MODE_FULL;
@@ -310,3 +317,23 @@ int paranoia_cachemodel_size(cdrom_paranoia *p,int sectors){
     p->cdcache_size=sectors;
   return ret;
 }
+
+long cdda_read(cdrom_paranoia *p, void *buffer, long beginsector, long sectors){
+  return p->cdda_read_func(p->cdda_closure, buffer, beginsector, sectors);
+}
+
+long cdda_read_timed(cdrom_paranoia *p, void *buffer, long beginsector, long sectors, int *milliseconds){
+  struct timespec ts1, ts2;
+  clock_gettime(CLOCK_MONOTONIC, &ts1);
+
+  long rv = cdda_read(p, buffer, beginsector, sectors);
+
+  clock_gettime(CLOCK_MONOTONIC, &ts2);
+
+  double starttime = (double)ts1.tv_sec + 1.0e-9 * (double)ts1.tv_nsec;
+  double endtime = (double)ts2.tv_sec + 1.0e-9 * (double)ts2.tv_nsec;
+  *milliseconds = (int)((endtime - starttime) * 1000.0);
+
+  return rv;
+}
+

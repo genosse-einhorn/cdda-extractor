@@ -6,7 +6,7 @@
 #ifndef _p_block_h_
 #define _p_block_h_
 
-#include "cdda_interface.h"
+#include <inttypes.h>
 
 #define MIN_WORDS_OVERLAP    64     /* 16 bit words */
 #define MIN_WORDS_SEARCH     64     /* 16 bit words */
@@ -17,6 +17,14 @@
 #define JIGGLE_MODULO        15     /* sectors */
 #define MIN_SILENCE_BOUNDARY 1024   /* 16 bit words */
 #define CACHEMODEL_SECTORS   1200
+
+#ifndef CD_FRAMESIZE
+#  define CD_FRAMESIZE 2048
+#endif
+#ifndef CD_FRAMESIZE_RAW
+#  define CD_FRAMESIZE_RAW 2352
+#endif
+#define CD_FRAMESAMPLES (CD_FRAMESIZE_RAW / 4)
 
 #define min(x,y) ((x)>(y)?(y):(x))
 #define max(x,y) ((x)<(y)?(y):(x))
@@ -134,7 +142,12 @@ typedef struct offsets{
 } offsets;
 
 typedef struct cdrom_paranoia{
-  cdrom_drive *d;
+  /* cd drive access stuff */
+  long (*cdda_read_func)(void *cdda_closure, void *buffer, long begin, long sectors);
+  void *cdda_closure;
+  int cdda_nsectors;
+  long cdda_disc_firstsector;
+  long cdda_disc_lastsector;
 
   root_block root;        /* verified/reconstructed cached data */
   linked_list *cache;     /* our data as read from the cdrom */
@@ -163,6 +176,9 @@ typedef struct cdrom_paranoia{
   /* statistics for verification */
 
 } cdrom_paranoia;
+
+extern long cdda_read(cdrom_paranoia *p, void *buffer, long beginsector, long sectors);
+extern long cdda_read_timed(cdrom_paranoia *p, void *buffer, long beginsector, long sectors, int *milliseconds);
 
 extern c_block *c_alloc(int16_t *vector,long begin,long size);
 extern void c_set(c_block *v,long begin);

@@ -74,14 +74,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "cdda_interface.h"
 #include "smallft.h"
 #include "p_block.h"
 #include "paranoia.h"
 #include "overlap.h"
 #include "gap.h"
 #include "isort.h"
-#include <errno.h>
 
 #define MIN_SEEK_MS 6
 
@@ -2239,15 +2237,15 @@ static void cdrom_cache_handler(cdrom_paranoia *p, int lba, void(*callback)(long
 
   if(lba<p->cdcache_begin){
     /* should always trigger a backseek so let's do that here and look for the timing */
-    seekpos=(lba==0 || lba-1<cdda_disc_firstsector(p->d) ? lba : lba-1); /* keep reads linear when possible */
+    seekpos=(lba==0 || lba-1<p->cdda_disc_firstsector ? lba : lba-1); /* keep reads linear when possible */
   }else{
     int pre = p->cdcache_begin-1;
     int post = lba+p->cdcache_size;
 
-    seekpos = (pre<cdda_disc_firstsector(p->d) ? post : pre);
+    seekpos = (pre<p->cdda_disc_firstsector ? post : pre);
   }
 
-  if(cdda_read_timed(p->d,NULL,seekpos,1,&ms)==1)
+  if(cdda_read_timed(p,NULL,seekpos,1,&ms)==1)
     if(seekpos<p->cdcache_begin && ms<MIN_SEEK_MS)
       if(callback) callback(seekpos*CD_FRAMEWORDS,PARANOIA_CB_CACHEERR);
   cdrom_cache_update(p,seekpos,1);
@@ -2288,7 +2286,7 @@ static void cdrom_cache_handler(cdrom_paranoia *p, int lba, void(*callback)(long
  */
 
 c_block *i_read_c_block(cdrom_paranoia *p,long beginword,long endword,
-                     void(*callback)(long,int)){
+                     void(*callback)(long,int),long *error){
 
 /* why do it this way?  We need to read lots of sectors to kludge
    around stupid read ahead buffers on cheap drives, as well as avoid
@@ -2298,7 +2296,7 @@ c_block *i_read_c_block(cdrom_paranoia *p,long beginword,long endword,
 
   long readat,firstread;
   long totaltoread=p->cdcache_size;
-  long sectatonce=p->d->nsectors;
+  long sectatonce=p->cdda_nsectors;
   long driftcomp=(float)p->dyndrift/CD_FRAMEWORDS+.5;
   c_block *new=NULL;
   root_block *root=&p->root;
@@ -2307,6 +2305,8 @@ c_block *i_read_c_block(cdrom_paranoia *p,long beginword,long endword,
   long sofar;
   long dynoverlap=(p->dynoverlap+CD_FRAMEWORDS-1)/CD_FRAMEWORDS;
   long anyflag=0;
+
+  *error = 0;
 
 
   /* Calculate the first sector to read.  This calculation takes
@@ -2413,15 +2413,16 @@ c_block *i_read_c_block(cdrom_paranoia *p,long beginword,long endword,
        * you get substantially better performance. --Monty
        */
 
-      if((thisread=cdda_read(p->d,buffer+sofar*CD_FRAMEWORDS,adjread,
+      if((thisread=cdda_read(p,buffer+sofar*CD_FRAMEWORDS,adjread,
                             secread))<secread){
 
         if(thisread<0){
-          if(errno==ENOMEDIUM){
+          if(thisread == CDDA_ERROR_CANCELED || thisread == CDDA_ERROR_NOMEDIUM){
             /* the one error we bail on immediately */
             if(new)free_c_block(new);
             if(buffer)free(buffer);
             if(flags)free(flags);
+            *error = thisread;
             return NULL;
           }
           thisread=0;
@@ -2602,7 +2603,8 @@ int16_t *paranoia_read_limited(cdrom_paranoia *p, void(*callback)(long,int),
        * read requests, and words which were near the boundaries of
        * those read requests are marked with FLAGS_EDGE.
        */
-      c_block *new=i_read_c_block(p,beginword,endword,callback);
+      long error = 0;
+      c_block *new=i_read_c_block(p,beginword,endword,callback,&error);
 
       if(new){
         if(p->enable&(PARANOIA_MODE_OVERLAP|PARANOIA_MODE_VERIFY)){
@@ -2660,7 +2662,7 @@ int16_t *paranoia_read_limited(cdrom_paranoia *p, void(*callback)(long,int),
 
         /* Was the medium removed or the device closed out from
            under us? */
-        if(errno==ENOMEDIUM) return NULL;
+        if(error==CDDA_ERROR_CANCELED || error==CDDA_ERROR_NOMEDIUM) return NULL;
 
       }
     }

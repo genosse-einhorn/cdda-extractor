@@ -82,7 +82,6 @@ HEADERS  += mainwindow.h \
     paranoia/overlap.h \
     paranoia/p_block.h \
     paranoia/paranoia.h \
-    paranoia/cdda_interface.h \
     paranoia/smallft.h \
     encoder/flacencoder.h \
     encoder/lame_backend.h \
