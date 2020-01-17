@@ -26,9 +26,7 @@ private:
     QString m_deviceName;
     QString m_lastErr;
 
-    void cleanup();
-
-    void read_cd_text(toc &toc);
+    void cleanup();    
 
 public:
     drive_handle();
@@ -51,6 +49,9 @@ public:
     bool allow_removal();
 
     toc get_toc();
+    void fill_mcn(toc &toc);
+    void fill_track_isrc(toc_track &track);
+    void fill_cd_text(toc &toc);
 
     bool read(void *buffer, block_addr start, block_addr_delta length);
 

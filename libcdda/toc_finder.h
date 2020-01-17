@@ -2,34 +2,25 @@
 #define TOC_FINDER_H
 
 #include <QObject>
+#include <QFuture>
 
 #include "toc.h"
 
 namespace cdda {
 
+// HACK! keep for tr() support
 class toc_finder : public QObject
 {
     Q_OBJECT
-public:
-    explicit toc_finder(QObject *parent = nullptr);
-
-signals:
-    void success(const QString &device, const cdda::toc &toc);
-    void error(const QString &message);
-
-public slots:
-    void start();
-
-private:
-    struct toc_result
-    {
-        QStringList log;
-        QString device;
-        cdda::toc toc;
-    };
-
-    static toc_result readToc();
 };
+
+struct toc_find_result {
+    QStringList log;
+    QString device;
+    cdda::toc toc;
+};
+
+QFuture<toc_find_result> find_toc(void);
 
 } // namespace cdda
 

@@ -264,7 +264,7 @@ bool drive_handle::allow_removal()
     return exec_scsi_command(&cdb, sizeof(cdb), nullptr, 0);
 }
 
-void drive_handle::read_cd_text(toc &toc)
+void drive_handle::fill_cd_text(toc &toc)
 {
     // READ TOC/PMA/ATIP response (format = 0101b)
 #pragma pack(push, 1)
@@ -501,7 +501,11 @@ toc drive_handle::get_toc()
     // remove lead-out entries
     retval.tracks.erase(std::remove_if(retval.tracks.begin(), retval.tracks.end(), [](const toc_track &a) { return a.index > 99; }), retval.tracks.end());
 
-    //=== find media catalog number
+    return retval;
+}
+
+void drive_handle::fill_mcn(toc &toc)
+{
 #pragma pack(push, 1)
     struct {
         quint8 opcode;
@@ -561,8 +565,8 @@ toc drive_handle::get_toc()
         {
             // I wouldn't trust the drive to actually zero terminate the string
             subbuf.mcn.mcn[13] = 0;
-            retval.catalog = QString::fromLatin1(subbuf.mcn.mcn);
-            qWarning() << "Found MCN:" << retval.catalog;
+            toc.catalog = QString::fromLatin1(subbuf.mcn.mcn);
+            qWarning() << "Found MCN:" << toc.catalog;
         }
     }
     else
@@ -570,39 +574,79 @@ toc drive_handle::get_toc()
         qWarning() << "(NON-FATAL) failed to read media catalog number:" << last_error();
     }
 
-    //=== find ISRC for tracks
-    for (toc_track &track : retval.tracks)
+}
+
+void drive_handle::fill_track_isrc(toc_track &track)
+{
+#pragma pack(push, 1)
+    struct {
+        quint8 opcode;
+        quint8 reserved : 1;
+        quint8 msf : 1;
+        quint8 reserved2 : 6;
+        quint8 reserved3 : 6;
+        quint8 subq : 1;
+        quint8 reserved4 : 1;
+        quint8 subchannel_parameter_list;
+        quint8 reserved5[2];
+        quint8 track_no;
+        quint8 allocation_length_msb;
+        quint8 allocation_length_lsb;
+        quint8 control;
+    } subcmd;
+    struct {
+        quint8 reserved;
+        quint8 audio_status;
+        quint8 subch_data_len_msb;
+        quint8 subch_data_len_lsb;
+        union {
+            struct {
+                quint8 subchannel_data_format_code;
+                quint8 reserved[3];
+                quint8 reserved2 : 7;
+                quint8 mcval : 1;
+                char mcn[14]; // supposedly always zero-terminated by the drive
+                quint8 aframe;
+            } mcn;
+            struct {
+                quint8 subchannel_data_format_code;
+                quint8 control : 4;
+                quint8 adr : 4;
+                quint8 trackno;
+                quint8 reserved;
+                quint8 reserved2 : 7;
+                quint8 tcval : 1;
+                char isrc[13]; // supposedly always zero-terminated by the drive
+                quint8 aframe;
+                quint8 reserved3;
+            } isrc;
+        };
+    } subbuf;
+#pragma pack(pop)
+    std::memset(&subcmd, 0, sizeof(subcmd));
+    std::memset(&subbuf, 0, sizeof(subbuf));
+
+    subcmd.opcode = 0x42;
+    subcmd.subq = 1;
+    subcmd.allocation_length_msb = quint8(quint16(sizeof(subbuf)) >> 8);
+    subcmd.allocation_length_lsb = quint8(quint16(sizeof(subbuf)) & 0xff);
+    subcmd.subchannel_parameter_list = 3;
+    subcmd.track_no = quint8(track.index);
+
+    if (exec_scsi_command(&subcmd, sizeof(subcmd), (quint8*)&subbuf, sizeof(subbuf)))
     {
-        std::memset(&subcmd, 0, sizeof(subcmd));
-        std::memset(&subbuf, 0, sizeof(subbuf));
-
-        subcmd.opcode = 0x42;
-        subcmd.subq = 1;
-        subcmd.allocation_length_msb = quint8(quint16(sizeof(subbuf)) >> 8);
-        subcmd.allocation_length_lsb = quint8(quint16(sizeof(subbuf)) & 0xff);
-        subcmd.subchannel_parameter_list = 3;
-        subcmd.track_no = quint8(track.index);
-
-        if (exec_scsi_command(&subcmd, sizeof(subcmd), (quint8*)&subbuf, sizeof(subbuf)))
+        if (subbuf.isrc.tcval)
         {
-            if (subbuf.isrc.tcval)
-            {
-                // I wouldn't trust the drive to actually zero terminate the string
-                subbuf.isrc.isrc[12] = 0;
-                track.isrc = QString::fromLatin1(subbuf.isrc.isrc);
-                qWarning() << "Found ISRC:" << track.isrc;
-            }
-        }
-        else
-        {
-            qWarning() << "(NON-FATAL) failed to read ISRC for track" << track.index << ":" << last_error();
+            // I wouldn't trust the drive to actually zero terminate the string
+            subbuf.isrc.isrc[12] = 0;
+            track.isrc = QString::fromLatin1(subbuf.isrc.isrc);
+            qWarning() << "Found ISRC:" << track.isrc;
         }
     }
-
-    //=== search CD-TEXT
-    read_cd_text(retval);
-
-    return retval;
+    else
+    {
+        qWarning() << "(NON-FATAL) failed to read ISRC for track" << track.index << ":" << last_error();
+    }
 }
 
 bool drive_handle::read(void *buffer, block_addr start, block_addr_delta length)

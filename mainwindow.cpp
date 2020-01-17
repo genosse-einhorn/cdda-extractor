@@ -91,8 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_trackmodel = new TrackListModel(this);
     ui->tvTracks->setModel(m_trackmodel);
 
-    connect(&m_tocReader, &cdda::toc_finder::success, this, &MainWindow::tocLoadSuccess);
-    connect(&m_tocReader, &cdda::toc_finder::error, this, &MainWindow::tocLoadError);
+    connect(&m_tocFindFutureWatcher, &QFutureWatcherBase::finished, this, &MainWindow::tocLoadFinish);
     connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::noMetadataFound, this, &MainWindow::tocLoadFinish);
     connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::metadataFound, this, &MainWindow::musicbrainzReleaseFound);
 
@@ -120,12 +119,14 @@ void MainWindow::showToc()
         m_tocReadProgressDialog = new ProgressDialog(this);
         m_tocReadProgressDialog->setModal(true);
         m_tocReadProgressDialog->setWindowTitle(tr("Loading Table of Contents..."));
-        m_tocReadProgressDialog->setCancelAllowed(false);
+        m_tocReadProgressDialog->setCancelAllowed(true);
+        connect(m_tocReadProgressDialog, &ProgressDialog::canceled, &m_tocFindFutureWatcher, &QFutureWatcherBase::cancel);
     }
 
     m_tocReadProgressDialog->setLabelText(tr("Loading Table of Contents from CD..."));
     m_tocReadProgressDialog->show();
-    m_tocReader.start();
+
+    m_tocFindFutureWatcher.setFuture(cdda::find_toc());
 }
 
 void MainWindow::resetUi()
@@ -179,32 +180,40 @@ void MainWindow::beginExtract()
     runner->start();
 }
 
-void MainWindow::tocLoadSuccess(const QString &device, const cdda::toc &toc)
-{
-    ui->eArtist->setText(toc.artist);
-    ui->eTitle->setText(toc.title);
-
-    m_trackmodel->reset(toc.tracks);
-    m_trackmodel->setDevice(device);
-    ui->tvTracks->setEnabled(true);
-    ui->metadataWidget->setEnabled(true);
-    ui->tbExtract->setEnabled(true);
-
-    m_tocReadProgressDialog->setLabelText(tr("Searching for metadata..."));
-    m_releaseFinder.startSearch(cdda::calculate_musicbrainz_discid(toc), toc.catalog);
-}
-
-void MainWindow::tocLoadError(const QString &msg)
-{
-    tocLoadFinish();
-    ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
-                                       "Make sure an audio CD is inserted into the drive."), msg);
-}
-
 void MainWindow::tocLoadFinish()
 {
-    delete m_tocReadProgressDialog;
-    m_tocReadProgressDialog = nullptr;
+    if (m_tocFindFutureWatcher.isCanceled())
+    {
+        delete m_tocReadProgressDialog;
+        m_tocReadProgressDialog = nullptr;
+
+        return;
+    }
+
+    cdda::toc_find_result result = m_tocFindFutureWatcher.result();
+    if (result.toc.is_valid())
+    {
+        ui->eArtist->setText(result.toc.artist);
+        ui->eTitle->setText(result.toc.title);
+
+        m_trackmodel->reset(result.toc.tracks);
+        m_trackmodel->setDevice(result.device);
+        ui->tvTracks->setEnabled(true);
+        ui->metadataWidget->setEnabled(true);
+        ui->tbExtract->setEnabled(true);
+
+        m_tocReadProgressDialog->setLabelText(tr("Searching for metadata..."));
+        m_releaseFinder.startSearch(cdda::calculate_musicbrainz_discid(result.toc), result.toc.catalog);
+    }
+    else
+    {
+        delete m_tocReadProgressDialog;
+        m_tocReadProgressDialog = nullptr;
+
+        ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
+                                           "Make sure an audio CD is inserted into the drive."),
+                                  result.log.join(QStringLiteral("\n")));
+    }
 }
 
 void MainWindow::musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &release)

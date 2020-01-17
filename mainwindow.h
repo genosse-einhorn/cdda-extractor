@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFuture>
+#include <QFutureWatcher>
 
 #include "libcdda/toc_finder.h"
 #include "musicbrainz/releasefinder.h"
@@ -26,8 +28,6 @@ private slots:
     void resetUi();
     void beginExtract();
 
-    void tocLoadSuccess(const QString &device, const cdda::toc &tracks);
-    void tocLoadError(const QString &msg);
     void tocLoadFinish();
     void musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &release);
 
@@ -39,7 +39,8 @@ private:
 
     TrackListModel *m_trackmodel { nullptr };
 
-    cdda::toc_finder m_tocReader;
+    QFutureWatcher<cdda::toc_find_result> m_tocFindFutureWatcher;
+
     MusicBrainz::ReleaseFinder m_releaseFinder;
     ProgressDialog *m_tocReadProgressDialog { nullptr };
 

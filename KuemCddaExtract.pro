@@ -36,6 +36,7 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
+    tasklib/taskrunner.cpp \
     tracklistmodel.cpp \
     extractparametersdialog.cpp \
     libcdda/toc_finder.cpp \
@@ -65,6 +66,7 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
+    tasklib/taskrunner.h \
     tracklistmodel.h \
     extractparametersdialog.h \
     libcdda/toc_finder.h \
