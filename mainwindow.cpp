@@ -92,8 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvTracks->setModel(m_trackmodel);
 
     connect(&m_tocFindFutureWatcher, &QFutureWatcherBase::finished, this, &MainWindow::tocLoadFinish);
-    connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::noMetadataFound, this, &MainWindow::tocLoadFinish);
-    connect(&m_releaseFinder, &MusicBrainz::ReleaseFinder::metadataFound, this, &MainWindow::musicbrainzReleaseFound);
+    connect(&m_musicbrainzFutureWatcher, &QFutureWatcherBase::finished, this, &MainWindow::musicbrainzReleaseFound);
 
     connect(ui->eArtist, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumArtist);
     connect(ui->eComposer, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumComposer);
@@ -203,7 +202,11 @@ void MainWindow::tocLoadFinish()
         ui->tbExtract->setEnabled(true);
 
         m_tocReadProgressDialog->setLabelText(tr("Searching for metadata..."));
-        m_releaseFinder.startSearch(cdda::calculate_musicbrainz_discid(result.toc), result.toc.catalog);
+        connect(m_tocReadProgressDialog, &ProgressDialog::canceled, &m_musicbrainzFutureWatcher, &QFutureWatcherBase::cancel);
+
+        m_musicbrainzFutureWatcher.setFuture(MusicBrainz::findReleaseOnThread(
+                                                 cdda::calculate_musicbrainz_discid(result.toc),
+                                                 result.toc.catalog));
     }
     else
     {
@@ -216,8 +219,15 @@ void MainWindow::tocLoadFinish()
     }
 }
 
-void MainWindow::musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &release)
+void MainWindow::musicbrainzReleaseFound()
 {
+    if (m_musicbrainzFutureWatcher.isCanceled()) {
+        delete m_tocReadProgressDialog;
+        m_tocReadProgressDialog = nullptr;
+        return;
+    }
+
+    MusicBrainz::ReleaseMetadata release = m_musicbrainzFutureWatcher.result();
     ui->eArtist->setText(release.artist);
     ui->eTitle->setText(release.title);
     ui->eComposer->setText(release.composer);
@@ -236,7 +246,8 @@ void MainWindow::musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &rel
         m_trackmodel->setTrackComposer(i, track.composer);
     }
 
-    tocLoadFinish();
+    delete m_tocReadProgressDialog;
+    m_tocReadProgressDialog = nullptr;
 }
 
 void MainWindow::extractError(const QString &msg)

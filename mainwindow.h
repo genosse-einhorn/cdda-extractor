@@ -29,7 +29,7 @@ private slots:
     void beginExtract();
 
     void tocLoadFinish();
-    void musicbrainzReleaseFound(const MusicBrainz::ReleaseMetadata &release);
+    void musicbrainzReleaseFound();
 
     void extractError(const QString &msg);
     void extractSuccess();
@@ -40,8 +40,8 @@ private:
     TrackListModel *m_trackmodel { nullptr };
 
     QFutureWatcher<cdda::toc_find_result> m_tocFindFutureWatcher;
+    QFutureWatcher<MusicBrainz::ReleaseMetadata> m_musicbrainzFutureWatcher;
 
-    MusicBrainz::ReleaseFinder m_releaseFinder;
     ProgressDialog *m_tocReadProgressDialog { nullptr };
 
     bool m_initialLoadDone { false };

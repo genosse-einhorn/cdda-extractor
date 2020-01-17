@@ -36,6 +36,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
+    musicbrainz/releasefinder.cpp \
+    tasklib/syncurldownload.cpp \
     tasklib/taskrunner.cpp \
     tracklistmodel.cpp \
     extractparametersdialog.cpp \
@@ -47,8 +49,6 @@ SOURCES += main.cpp\
     encoder/abstractencoder.cpp \
     encoder/wavencoder.cpp \
     coverartwidget.cpp \
-    musicbrainz/urldownloader.cpp \
-    musicbrainz/releasefinder.cpp \
     paranoia/gap.c \
     paranoia/isort.c \
     paranoia/overlap.c \
@@ -66,6 +66,8 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
+    musicbrainz/releasefinder.h \
+    tasklib/syncurldownload.h \
     tasklib/taskrunner.h \
     tracklistmodel.h \
     extractparametersdialog.h \
@@ -77,8 +79,6 @@ HEADERS  += mainwindow.h \
     encoder/abstractencoder.h \
     encoder/wavencoder.h \
     coverartwidget.h \
-    musicbrainz/urldownloader.h \
-    musicbrainz/releasefinder.h \
     paranoia/gap.h \
     paranoia/isort.h \
     paranoia/overlap.h \

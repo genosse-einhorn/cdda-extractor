@@ -1,11 +1,10 @@
-#ifndef RELEASEFINDER_H
-#define RELEASEFINDER_H
+#ifndef MUSICBRAINZ_RELEASEFINDER2_H
+#define MUSICBRAINZ_RELEASEFINDER2_H
 
-#include <QObject>
+#include "../tasklib/taskrunner.h"
+
 #include <QImage>
 #include <vector>
-
-class QXmlStreamReader;
 
 namespace MusicBrainz {
 
@@ -27,41 +26,10 @@ struct ReleaseMetadata {
     std::vector<TrackMetadata> tracks;
 };
 
-class ReleaseFinder : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ReleaseFinder(QObject *parent = nullptr);
+ReleaseMetadata findRelease(const QString &discid, const QString &mcn, const TaskRunner::CancelToken &cancelToken);
 
-signals:
-    void metadataFound(const ReleaseMetadata &meta);
-    void noMetadataFound();
-
-public slots:
-    void startSearch(const QString &discid, const QString &mcn);
-
-private slots:
-    void startMetadataSearch();
-    void startCoverDownload();
-
-    void discidDataArrived(const QByteArray &data);
-    void releaseDataArrived(const QByteArray &data);
-    void coverArrived(const QByteArray &data);
-
-private:
-    QString m_discid;
-    QString m_mcn;
-    QString m_release;
-    ReleaseMetadata m_metadata;
-
-    void parseRelease(QXmlStreamReader *xml);
-    QString parseArtistCredits(QXmlStreamReader *xml);
-    void parseMedium(QXmlStreamReader *xml);
-    TrackMetadata parseTrack(QXmlStreamReader *xml);
-    TrackMetadata parseRecording(QXmlStreamReader *xml);
-    QString parseComposerFromWork(QXmlStreamReader *xml);
-};
+QFuture<ReleaseMetadata> findReleaseOnThread(const QString &discid, const QString &mcn);
 
 } // namespace MusicBrainz
 
-#endif // RELEASEFINDER_H
+#endif // MUSICBRAINZ_RELEASEFINDER2_H
