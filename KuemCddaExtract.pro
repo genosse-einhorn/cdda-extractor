@@ -57,6 +57,7 @@ SOURCES += main.cpp\
     paranoia/smallft.c \
     encoder/flacencoder.cpp \
     encoder/lameencoder.cpp \
+    uiutil/futureprogressdialog.cpp \
     uiutil/progressdialog.cpp \
     uiutil/clickablebuddylabel.cpp \
     uiutil/extendederrordialog.cpp \
@@ -90,6 +91,7 @@ HEADERS  += mainwindow.h \
     encoder/lameencoder.h \
     uiutil/clickablebuddylabel.h \
     uiutil/extendederrordialog.h \
+    uiutil/futureprogressdialog.h \
     uiutil/iconwidget.h \
     uiutil/progressdialog.h \
     uiutil/win32iconloader.h

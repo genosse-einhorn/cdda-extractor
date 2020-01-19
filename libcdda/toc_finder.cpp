@@ -9,48 +9,46 @@
 
 namespace cdda {
 
-static toc_find_result intern_find_toc(const TaskRunner::CancelToken &cancelToken)
+toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::CancelToken &cancelToken)
 {
-    toc_find_result retval;
-
     QStringList drives = cdda::drive_handle::list_drives();
 
     if (!drives.size())
-        retval.log << toc_finder::tr("No CD drives found :(");
+        *out_log << toc_finder::tr("No CD drives found :(");
 
     for (QString drive : drives)
     {
         if (cancelToken.isCanceled())
-            return retval;
+            return cdda::toc();
 
-        retval.log << toc_finder::tr("Probing drive: %1").arg(drive);
+        *out_log << toc_finder::tr("Probing drive: %1").arg(drive);
 
         cdda::drive_handle h = cdda::drive_handle::open(drive);
         if (!h.ok())
         {
-            retval.log << toc_finder::tr("Could not open %1: %2").arg(drive).arg(h.last_error());
+            *out_log << toc_finder::tr("Could not open %1: %2").arg(drive).arg(h.last_error());
             continue;
         }
 
         if (cancelToken.isCanceled())
-            return retval;
+            return cdda::toc();
 
         auto toc = h.get_toc();
         if (!toc.is_valid())
         {
-            retval.log << toc_finder::tr("Could not read TOC from %1: %2").arg(drive).arg(h.last_error());
+            *out_log << toc_finder::tr("Could not read TOC from %1: %2").arg(drive).arg(h.last_error());
             continue;
         }
 
         auto audio = std::find_if(toc.tracks.cbegin(), toc.tracks.cend(), [](const toc_track &track) { return track.is_audio(); });
         if (audio == toc.tracks.cend())
         {
-            retval.log << toc_finder::tr("CD in %1 does not contain any audio tracks.").arg(drive);
+            *out_log << toc_finder::tr("CD in %1 does not contain any audio tracks.").arg(drive);
             continue;
         }
 
         if (cancelToken.isCanceled())
-            return retval;
+            return toc;
 
         //=== find media catalog number
         h.fill_mcn(toc);
@@ -59,13 +57,13 @@ static toc_find_result intern_find_toc(const TaskRunner::CancelToken &cancelToke
         for (toc_track &track : toc.tracks)
         {
             if (cancelToken.isCanceled())
-                return retval;
+                return toc;
 
             h.fill_track_isrc(track);
         }
 
         if (cancelToken.isCanceled())
-            return retval;
+            return toc;
 
         //=== search CD-TEXT
         h.fill_cd_text(toc);
@@ -85,17 +83,23 @@ static toc_find_result intern_find_toc(const TaskRunner::CancelToken &cancelToke
             toc.tracks.insert(toc.tracks.begin(), track);
         }
 
-        retval.device = h.device_name();
-        retval.toc = toc;
-        break;
+        *out_device = h.device_name();
+        return toc;
     }
 
-    return retval;
+    return cdda::toc();
 }
 
-QFuture<toc_find_result> find_toc()
+QFuture<toc_find_result> find_toc_threaded()
 {
-    return TaskRunner::run(intern_find_toc);
+    return TaskRunner::run([](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken&){
+        cdda::toc_find_result result;
+
+        result.toc = find_toc(&result.device, &result.log, cancelToken);
+
+        return result;
+    });
 }
+
 
 } // namespace cdda

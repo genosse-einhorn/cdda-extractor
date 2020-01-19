@@ -79,6 +79,14 @@ void ProgressDialog::setMaximum(int max)
     fixupUi();
 }
 
+void ProgressDialog::setRange(int min, int max)
+{
+    ui->progressBar->setMinimum(min);
+    ui->progressBar->setMaximum(max);
+
+    fixupUi();
+}
+
 void ProgressDialog::setValue(int progress)
 {
     ui->progressBar->setValue(progress);

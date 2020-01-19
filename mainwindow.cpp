@@ -7,7 +7,7 @@
 #include "uiutil/extendederrordialog.h"
 #include "extractparametersdialog.h"
 #include "extractrunner.h"
-#include "uiutil/progressdialog.h"
+#include "uiutil/futureprogressdialog.h"
 
 #include <QMessageBox>
 #include <QMenu>
@@ -19,6 +19,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    m_progressDialog = new FutureProgressDialog(this);
+    m_progressDialog->setModal(true);
+    m_progressDialog->setCancelAllowed(true);
+
     // Generate extras menu
     QMenu *menu = new QMenu(this);
     menu->addAction(tr("About"));
@@ -26,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tbMore->setMenu(menu);
 
-    connect(ui->tbRefresh, &QAbstractButton::clicked, this, &MainWindow::showToc);
+    connect(ui->tbRefresh, &QAbstractButton::clicked, this, &MainWindow::reloadToc);
     connect(ui->tbExtract, &QAbstractButton::clicked, this, &MainWindow::beginExtract);
 
     // Enlarge "Extract" button
@@ -91,9 +95,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_trackmodel = new TrackListModel(this);
     ui->tvTracks->setModel(m_trackmodel);
 
-    connect(&m_tocFindFutureWatcher, &QFutureWatcherBase::finished, this, &MainWindow::tocLoadFinish);
-    connect(&m_musicbrainzFutureWatcher, &QFutureWatcherBase::finished, this, &MainWindow::musicbrainzReleaseFound);
-
     connect(ui->eArtist, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumArtist);
     connect(ui->eComposer, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumComposer);
     connect(ui->eTitle, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumTitle);
@@ -109,23 +110,92 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::showToc()
+void MainWindow::reloadToc()
 {
     resetUi();
 
-    if (!m_tocReadProgressDialog)
+    m_progressDialog->setWindowTitle(tr("Loading Table of Contents..."));
+
+    auto future = TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &progressToken) {
+        progressToken.reportProgressValueAndText(1, tr("Loading TOC from CD..."));
+
+        QStringList errorLog;
+        QString device;
+        cdda::toc toc = cdda::find_toc(&device, &errorLog, cancelToken);
+
+        MusicBrainz::ReleaseMetadata release;
+
+        if (toc.is_valid() && !cancelToken.isCanceled()) {
+            progressToken.reportProgressValueAndText(2, tr("Searching for metadata..."));
+            release = MusicBrainz::findRelease(cdda::calculate_musicbrainz_discid(toc),
+                                               toc.catalog,
+                                               cancelToken);
+        }
+
+        return std::make_tuple(toc, device, errorLog, release);
+    });
+
+    m_progressDialog->setFuture(future);
+
+    TaskRunner::handle_result_tuple_unpack(future, this, &MainWindow::tocLoaded);
+}
+
+void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, const MusicBrainz::ReleaseMetadata &release)
+{
+    if (toc.is_valid())
     {
-        m_tocReadProgressDialog = new ProgressDialog(this);
-        m_tocReadProgressDialog->setModal(true);
-        m_tocReadProgressDialog->setWindowTitle(tr("Loading Table of Contents..."));
-        m_tocReadProgressDialog->setCancelAllowed(true);
-        connect(m_tocReadProgressDialog, &ProgressDialog::canceled, &m_tocFindFutureWatcher, &QFutureWatcherBase::cancel);
+        ui->eArtist->setText(toc.artist);
+        ui->eTitle->setText(toc.title);
+
+        m_trackmodel->reset(toc.tracks);
+        m_trackmodel->setDevice(device);
+        ui->tvTracks->setEnabled(true);
+        ui->metadataWidget->setEnabled(true);
+        ui->tbExtract->setEnabled(true);
+
+        if (release.artist.size())
+            ui->eArtist->setText(release.artist);
+
+        if (release.title.size())
+            ui->eTitle->setText(release.title);
+
+        if (release.composer.size())
+            ui->eComposer->setText(release.composer);
+
+        if (release.year.size())
+            ui->eYear->setText(release.year);
+
+        if (release.discNo.size())
+            ui->eDiscNo->setText(release.discNo);
+
+        if (!release.cover.isNull())
+        {
+            ui->coverArt->setCover(release.cover);
+            m_trackmodel->setAlbumCover(release.cover);
+        }
+
+        for (const auto &track : release.tracks)
+        {
+            int i = m_trackmodel->trackIndexForTrackno(track.trackno);
+            if (i < 0)
+                continue;
+
+            if (track.artist.size())
+                m_trackmodel->setTrackArtist(i, track.artist);
+
+            if (track.title.size())
+                m_trackmodel->setTrackTitle(i, track.title);
+
+            if (track.composer.size())
+                m_trackmodel->setTrackComposer(i, track.composer);
+        }
     }
-
-    m_tocReadProgressDialog->setLabelText(tr("Loading Table of Contents from CD..."));
-    m_tocReadProgressDialog->show();
-
-    m_tocFindFutureWatcher.setFuture(cdda::find_toc());
+    else
+    {
+        ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
+                                           "Make sure an audio CD is inserted into the drive."),
+                                  errorLog.join(QStringLiteral("\n")));
+    }
 }
 
 void MainWindow::resetUi()
@@ -179,77 +249,6 @@ void MainWindow::beginExtract()
     runner->start();
 }
 
-void MainWindow::tocLoadFinish()
-{
-    if (m_tocFindFutureWatcher.isCanceled())
-    {
-        delete m_tocReadProgressDialog;
-        m_tocReadProgressDialog = nullptr;
-
-        return;
-    }
-
-    cdda::toc_find_result result = m_tocFindFutureWatcher.result();
-    if (result.toc.is_valid())
-    {
-        ui->eArtist->setText(result.toc.artist);
-        ui->eTitle->setText(result.toc.title);
-
-        m_trackmodel->reset(result.toc.tracks);
-        m_trackmodel->setDevice(result.device);
-        ui->tvTracks->setEnabled(true);
-        ui->metadataWidget->setEnabled(true);
-        ui->tbExtract->setEnabled(true);
-
-        m_tocReadProgressDialog->setLabelText(tr("Searching for metadata..."));
-        connect(m_tocReadProgressDialog, &ProgressDialog::canceled, &m_musicbrainzFutureWatcher, &QFutureWatcherBase::cancel);
-
-        m_musicbrainzFutureWatcher.setFuture(MusicBrainz::findReleaseOnThread(
-                                                 cdda::calculate_musicbrainz_discid(result.toc),
-                                                 result.toc.catalog));
-    }
-    else
-    {
-        delete m_tocReadProgressDialog;
-        m_tocReadProgressDialog = nullptr;
-
-        ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
-                                           "Make sure an audio CD is inserted into the drive."),
-                                  result.log.join(QStringLiteral("\n")));
-    }
-}
-
-void MainWindow::musicbrainzReleaseFound()
-{
-    if (m_musicbrainzFutureWatcher.isCanceled()) {
-        delete m_tocReadProgressDialog;
-        m_tocReadProgressDialog = nullptr;
-        return;
-    }
-
-    MusicBrainz::ReleaseMetadata release = m_musicbrainzFutureWatcher.result();
-    ui->eArtist->setText(release.artist);
-    ui->eTitle->setText(release.title);
-    ui->eComposer->setText(release.composer);
-    ui->eYear->setText(release.year);
-    ui->eDiscNo->setText(release.discNo);
-    ui->coverArt->setCover(release.cover);
-    m_trackmodel->setAlbumCover(release.cover);
-    for (const auto &track : release.tracks)
-    {
-        int i = m_trackmodel->trackIndexForTrackno(track.trackno);
-        if (i < 0)
-            continue;
-
-        m_trackmodel->setTrackArtist(i, track.artist);
-        m_trackmodel->setTrackTitle(i, track.title);
-        m_trackmodel->setTrackComposer(i, track.composer);
-    }
-
-    delete m_tocReadProgressDialog;
-    m_tocReadProgressDialog = nullptr;
-}
-
 void MainWindow::extractError(const QString &msg)
 {
     ExtendedErrorDialog::show(this, tr("Audio extraction failed."), msg);
@@ -279,5 +278,5 @@ void MainWindow::showEvent(QShowEvent *event)
     ui->tvTracks->horizontalHeader()->setSectionResizeMode(TrackListModel::COLUMN_TRACKNO, QHeaderView::ResizeToContents);
     ui->tvTracks->horizontalHeader()->setSectionResizeMode(TrackListModel::COLUMN_LENGTH, QHeaderView::ResizeToContents);
 
-    QTimer::singleShot(1, this, &MainWindow::showToc);
+    QTimer::singleShot(1, this, &MainWindow::reloadToc);
 }

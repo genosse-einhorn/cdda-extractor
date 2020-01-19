@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QFuture>
 
+#include "../tasklib/taskrunner.h"
 #include "toc.h"
 
 namespace cdda {
@@ -20,7 +21,9 @@ struct toc_find_result {
     cdda::toc toc;
 };
 
-QFuture<toc_find_result> find_toc(void);
+cdda::toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::CancelToken &cancelToken);
+
+QFuture<toc_find_result> find_toc_threaded(void);
 
 } // namespace cdda
 

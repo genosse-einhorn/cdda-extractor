@@ -14,6 +14,7 @@ class MainWindow;
 
 class TrackListModel;
 class ProgressDialog;
+class FutureProgressDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -24,12 +25,11 @@ public:
     ~MainWindow();
 
 private slots:
-    void showToc();
+    void reloadToc();
+    void tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, const MusicBrainz::ReleaseMetadata &release);
+
     void resetUi();
     void beginExtract();
-
-    void tocLoadFinish();
-    void musicbrainzReleaseFound();
 
     void extractError(const QString &msg);
     void extractSuccess();
@@ -39,10 +39,7 @@ private:
 
     TrackListModel *m_trackmodel { nullptr };
 
-    QFutureWatcher<cdda::toc_find_result> m_tocFindFutureWatcher;
-    QFutureWatcher<MusicBrainz::ReleaseMetadata> m_musicbrainzFutureWatcher;
-
-    ProgressDialog *m_tocReadProgressDialog { nullptr };
+    FutureProgressDialog *m_progressDialog;
 
     bool m_initialLoadDone { false };
 

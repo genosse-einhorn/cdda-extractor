@@ -35,6 +35,7 @@ signals:
 public slots:
     void setMinimum(int min);
     void setMaximum(int max);
+    void setRange(int min, int max);
     void setValue(int progress);
     void setLabelText(const QString &text);
     void setCancelAllowed(bool allowed);

@@ -417,7 +417,7 @@ ReleaseMetadata findRelease(const QString &discid, const QString &mcn, const Tas
 
 QFuture<ReleaseMetadata> findReleaseOnThread(const QString &discid, const QString &mcn)
 {
-    return TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken) {
+    return TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &) {
         return findRelease(discid, mcn, cancelToken);
     });
 }
