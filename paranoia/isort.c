@@ -177,8 +177,8 @@ void sort_setup(sort_info *i,int16_t *vector,long *abspos,
    * Note that the index will not be built until sort_getmatch() is called.
    * Here we're simply hanging on to the range to index until then.
    */
-  i->lo=min(size,max(sortlo-*abspos,0));
-  i->hi=max(0,min(sorthi-*abspos,size));
+  i->lo=paranoia_min(size,paranoia_max(sortlo-*abspos,0));
+  i->hi=paranoia_max(0,paranoia_min(sorthi-*abspos,size));
 }
 
 /* ===========================================================================
@@ -208,10 +208,10 @@ sort_link *sort_getmatch(sort_info *i,long post,long overlap,int value){
    *
    * Reusing lo and hi this way is awful.
    */
-  post=max(0,min(i->size,post));
+  post=paranoia_max(0,paranoia_min(i->size,post));
   i->val=value+32768;
-  i->lo=max(0,post-overlap);       /* absolute position */
-  i->hi=min(i->size,post+overlap); /* absolute position */
+  i->lo=paranoia_max(0,post-overlap);       /* absolute position */
+  i->hi=paranoia_min(i->size,post+overlap); /* absolute position */
 
   /* Walk through the linked list of samples with this value, until
    * we find the first one within the bounds specified.  If there

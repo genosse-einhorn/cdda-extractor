@@ -70,7 +70,6 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -578,8 +577,8 @@ static long i_iterate_stage1(cdrom_paranoia *p,c_block *old,c_block *new,
    */
 
   /* we no longer try to spread the stage one search area by dynoverlap */
-  long searchend=min(ce(old),ce(new));
-  long searchbegin=max(cb(old),cb(new));
+  long searchend=paranoia_min(ce(old),ce(new));
+  long searchbegin=paranoia_max(cb(old),cb(new));
   long searchsize=searchend-searchbegin;
   sort_info *i=p->sortcache;
   long ret=0;
@@ -732,8 +731,8 @@ static long i_stage1(cdrom_paranoia *p,c_block *new,
      * hence belong in the verified fragment.  See stage1_matched()
      * for an explanation of the trimming.
      */
-    new_v_fragment(p,new,cb(new)+max(0,begin-OVERLAP_ADJ),
-                   cb(new)+min(size,end+OVERLAP_ADJ),
+    new_v_fragment(p,new,cb(new)+paranoia_max(0,begin-OVERLAP_ADJ),
+                   cb(new)+paranoia_min(size,end+OVERLAP_ADJ),
                    (end+OVERLAP_ADJ>=size && new->lastsector));
 
     begin=end;
@@ -808,8 +807,8 @@ static long i_iterate_stage2(cdrom_paranoia *p,v_fragment *v,
    * We could just as easily expand root's boundaries by p->dynoverlap
    * instead and achieve the same result.
    */
-  if(min(fe(v)+p->dynoverlap,re(root))-
-    max(fb(v)-p->dynoverlap,rb(root))<=0)return(0);
+  if(paranoia_min(fe(v)+p->dynoverlap,re(root))-
+    paranoia_max(fb(v)-p->dynoverlap,rb(root))<=0)return(0);
 
   if(callback)(*callback)(fb(v),PARANOIA_CB_VERIFY);
 
@@ -819,7 +818,7 @@ static long i_iterate_stage2(cdrom_paranoia *p,v_fragment *v,
    * outside the boundaries of the root.  But, of course, don't extend
    * past the edges of the fragment.
    */
-  fbv=max(fb(v),rb(root)-p->dynoverlap);
+  fbv=paranoia_max(fb(v),rb(root)-p->dynoverlap);
 
   /* Skip past leading zeroes in the fragment, and bail if there's nothing
    * but silence.  We handle silence later separately.
@@ -840,7 +839,7 @@ static long i_iterate_stage2(cdrom_paranoia *p,v_fragment *v,
    *
    * "??? Is this why?  Why 256?" 256 is simply a 'large enough number'. --Monty
    */
-  fev=min(min(fbv+256,re(root)+p->dynoverlap),fe(v));
+  fev=paranoia_min(paranoia_min(fbv+256,re(root)+p->dynoverlap),fe(v));
 
   {
     /* Because we'll allow for up to (p->dynoverlap) jitter between the
@@ -849,8 +848,8 @@ static long i_iterate_stage2(cdrom_paranoia *p,v_fragment *v,
      * root, we need to constrain the search area not to extend beyond
      * the root's boundaries.
      */
-    long searchend=min(fev+p->dynoverlap,re(root));
-    long searchbegin=max(fbv-p->dynoverlap,rb(root));
+    long searchend=paranoia_min(fev+p->dynoverlap,re(root));
+    long searchbegin=paranoia_max(fbv-p->dynoverlap,rb(root));
     sort_info *i=p->sortcache;
     long j;
 
@@ -1016,16 +1015,21 @@ static long i_silence_match(root_block *root, v_fragment *v,
      * samples at the beginning, so we overlap by that amount.
      */
     long addto=fb(v)+MIN_SILENCE_BOUNDARY-re(root);
+#ifdef _MSC_VER
+    int16_t *vec = (int16_t*)_alloca(sizeof(int16_t)*addto);
+    memset(vec,0,addto*sizeof(int16_t));
+#else
     int16_t vec[addto];
     memset(vec,0,sizeof(vec));
+#endif
     c_append(rc(root),vec,addto);
   }
 
   /* Calculate the overlap of the root's trailing silence and the fragment's
    * leading silence.  (begin,end) are the boundaries of that overlap.
    */
-  begin=max(fb(v),root->silencebegin);
-  end=min(j,re(root));
+  begin=paranoia_max(fb(v),root->silencebegin);
+  end=paranoia_min(j,re(root));
 
   /* If there is an overlap, we assume that both the root and the fragment
    * are jitter-free (since there's no way for us to tell otherwise).
@@ -1918,7 +1922,11 @@ static int i_stage2(cdrom_paranoia *p,long beginword,long endword,
      */
     v_fragment *first=v_first(p);
     long active=p->fragments->active,count=0;
+#ifdef _MSC_VER
+    v_fragment **list = (v_fragment **)_alloca(sizeof(v_fragment *) * active);
+#else
     v_fragment *list[active];
+#endif
 
     while(first){
       v_fragment *next=v_next(first);
@@ -2146,7 +2154,7 @@ static void verify_skip_case(cdrom_paranoia *p,void(*callback)(long,int)){
       long cend=ce(graft);
 
       while(gend<cend && (graft->flags[gend-cbegin]&FLAGS_VERIFIED))gend++;
-      gend=min(gend+OVERLAP_ADJ,cend);
+      gend=paranoia_min(gend+OVERLAP_ADJ,cend);
 
       if(rv(root)==NULL){
         int16_t *buff=malloc(cs(graft));

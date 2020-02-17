@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui concurrent widgets svg
+QT       += core gui concurrent widgets svg network
 win32: QT += winextras
 
 TARGET = KuemCddaExtract
@@ -12,7 +12,7 @@ TEMPLATE = app
 
 CONFIG += link_pkgconfig c++11
 
-QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
+!msvc:QMAKE_CXXFLAGS_DEBUG += -Wall -Wextra -Wconversion -Wshadow
 
 msvc: QMAKE_CXXFLAGS += /utf-8 /wd4200
 win32: LIBS += -luser32 -lshell32
@@ -25,12 +25,6 @@ msvc {
 }
 
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
-
-win32 {
-    LIBS += -lwininet
-} else {
-    QT += network
-}
 
 SOURCES += main.cpp\
         mainwindow.cpp \

@@ -469,8 +469,8 @@ void  analyze_rift_silence_f(int16_t *A,int16_t *B,long sizeA,long sizeB,
   /* Search for MIN_WORDS_RIFT samples, or to the end of the vector,
    * whichever comes first.
    */
-  sizeA=min(sizeA,aoffset+MIN_WORDS_RIFT);
-  sizeB=min(sizeB,boffset+MIN_WORDS_RIFT);
+  sizeA=paranoia_min(sizeA,aoffset+MIN_WORDS_RIFT);
+  sizeB=paranoia_min(sizeB,boffset+MIN_WORDS_RIFT);
 
   aoffset++;
   boffset++;

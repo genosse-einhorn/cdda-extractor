@@ -26,8 +26,8 @@
 #endif
 #define CD_FRAMESAMPLES (CD_FRAMESIZE_RAW / 4)
 
-#define min(x,y) ((x)>(y)?(y):(x))
-#define max(x,y) ((x)<(y)?(y):(x))
+#define paranoia_min(x,y) ((x)>(y)?(y):(x))
+#define paranoia_max(x,y) ((x)<(y)?(y):(x))
 
 #include "isort.h"
 
@@ -36,7 +36,7 @@ typedef struct linked_list{
   struct linked_element *head;
   struct linked_element *tail;
 
-  void *(*new_poly)();
+  void *(*new_poly)(void);
   void (*free_poly)(void *poly);
   long current;
   long active;

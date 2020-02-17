@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 extern char *paranoia_version();
-extern cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void */*cdda_closure*/, void */*buffer*/, long /*begin*/, long /*sectors*/),
+extern cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void * /*cdda_closure*/, void * /*buffer*/, long /*begin*/, long /*sectors*/),
                                      void *cdda_closure,
                                      int nsectors,
                                      long firstsector, long lastsector);

@@ -2,7 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <time.h>
+#ifdef WIN32
+#  include <windows.h>
+#else
+#  include <time.h>
+#endif
 #include "p_block.h"
 #include "paranoia.h"
 
@@ -282,7 +286,7 @@ void c_removef(c_block *v, long cut){
 
 /**** Initialization *************************************************/
 
-cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void */*cdda_closure*/, void */*buffer*/, long /*begin*/, long /*sectors*/),
+cdrom_paranoia *paranoia_init(long (*cdda_read_func)(void * /*cdda_closure*/, void * /*buffer*/, long /*begin*/, long /*sectors*/),
                               void *cdda_closure,
                               int nsectors,
                               long firstsector, long lastsector){
@@ -323,16 +327,26 @@ long cdda_read(cdrom_paranoia *p, void *buffer, long beginsector, long sectors){
 }
 
 long cdda_read_timed(cdrom_paranoia *p, void *buffer, long beginsector, long sectors, int *milliseconds){
+#ifdef WIN32
+  DWORD t1, t2;
+  t1 = GetTickCount();
+#else
   struct timespec ts1, ts2;
   clock_gettime(CLOCK_MONOTONIC, &ts1);
+#endif
 
   long rv = cdda_read(p, buffer, beginsector, sectors);
 
+#ifdef WIN32
+  t2 = GetTickCount();
+  *milliseconds = (int)(t2 - t1);
+#else
   clock_gettime(CLOCK_MONOTONIC, &ts2);
 
   double starttime = (double)ts1.tv_sec + 1.0e-9 * (double)ts1.tv_nsec;
   double endtime = (double)ts2.tv_sec + 1.0e-9 * (double)ts2.tv_nsec;
   *milliseconds = (int)((endtime - starttime) * 1000.0);
+#endif
 
   return rv;
 }
