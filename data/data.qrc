@@ -8,5 +8,6 @@
         <file>audio-x-generic.svg</file>
         <file>drive-cdrom.svg</file>
         <file>inode-directory.svg</file>
+        <file>musicbrainz.svg</file>
     </qresource>
 </RCC>

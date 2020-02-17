@@ -8,6 +8,7 @@
 #include "extractparametersdialog.h"
 #include "extractrunner.h"
 #include "uiutil/futureprogressdialog.h"
+#include "musicbrainzaskdialog.h"
 
 #include <QMessageBox>
 #include <QMenu>
@@ -25,8 +26,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Generate extras menu
     QMenu *menu = new QMenu(this);
+    menu->addAction(tr("Automatic Metadata Download..."), [=]() {
+        MusicBrainzAskDialog::showAskDialog(this);
+        this->reloadToc();
+    });
+    menu->addSeparator();
     menu->addAction(tr("About"));
     menu->addAction(tr("About Qt"), [=]() { QMessageBox::aboutQt(this); });
+
 
     ui->tbMore->setMenu(menu);
 
@@ -114,6 +121,8 @@ void MainWindow::reloadToc()
 {
     resetUi();
 
+    bool musicbrainzOk = MusicBrainzAskDialog::downloadOkMaybeAsk(this);
+
     m_progressDialog->setWindowTitle(tr("Loading Table of Contents..."));
 
     auto future = TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &progressToken) {
@@ -125,7 +134,7 @@ void MainWindow::reloadToc()
 
         MusicBrainz::ReleaseMetadata release;
 
-        if (toc.is_valid() && !cancelToken.isCanceled()) {
+        if (toc.is_valid() && !cancelToken.isCanceled() && musicbrainzOk) {
             progressToken.reportProgressValueAndText(2, tr("Searching for metadata..."));
             release = MusicBrainz::findRelease(cdda::calculate_musicbrainz_discid(toc),
                                                toc.catalog,
