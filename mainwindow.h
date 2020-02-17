@@ -34,6 +34,8 @@ private slots:
     void extractError(const QString &msg);
     void extractSuccess();
 
+    void tableHeaderClicked(int logicalIndex);
+
 private:
     Ui::MainWindow *ui;
 

@@ -109,6 +109,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->eYear, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumYear);
     connect(ui->eDiscNo, &QLineEdit::textChanged, m_trackmodel, &TrackListModel::setAlbumDiscNo);
 
+    connect(ui->tvTracks->horizontalHeader(), &QHeaderView::sectionClicked, this, &MainWindow::tableHeaderClicked);
+
     resetUi();
 }
 
@@ -266,6 +268,25 @@ void MainWindow::extractError(const QString &msg)
 void MainWindow::extractSuccess()
 {
     QMessageBox::information(this, tr("Success"), tr("Audio extraction completed successfully."), QMessageBox::Ok);
+}
+
+void MainWindow::tableHeaderClicked(int logicalIndex)
+{
+    if (logicalIndex == TrackListModel::COLUMN_TRACKNO) {
+        // Checkmark column - check/uncheck all
+
+        bool allChecked = true;
+        for (int i = 0; i < m_trackmodel->trackCount(); ++i) {
+            if (!m_trackmodel->trackSelected(i)) {
+                allChecked = false;
+                break;
+            }
+        }
+
+        for (int i = 0; i < m_trackmodel->trackCount(); ++i) {
+            m_trackmodel->setData(m_trackmodel->index(i, TrackListModel::COLUMN_TRACKNO), allChecked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole);
+        }
+    }
 }
 
 
