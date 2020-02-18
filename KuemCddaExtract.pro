@@ -27,6 +27,7 @@ msvc {
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 SOURCES += main.cpp\
+    extractor.cpp \
         mainwindow.cpp \
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
@@ -38,8 +39,6 @@ SOURCES += main.cpp\
     extractparametersdialog.cpp \
     libcdda/toc_finder.cpp \
     libcdda/sense.cpp \
-    extractrunner.cpp \
-    extractrunnerworker.cpp \
     libcdda/os_util.cpp \
     encoder/abstractencoder.cpp \
     encoder/wavencoder.cpp \
@@ -60,6 +59,7 @@ SOURCES += main.cpp\
     uiutil/win32iconloader.cpp
 
 HEADERS  += mainwindow.h \
+    extractor.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     musicbrainz/releasefinder.h \
@@ -70,8 +70,6 @@ HEADERS  += mainwindow.h \
     extractparametersdialog.h \
     libcdda/toc_finder.h \
     libcdda/sense.h \
-    extractrunner.h \
-    extractrunnerworker.h \
     libcdda/os_util.h \
     encoder/abstractencoder.h \
     encoder/wavencoder.h \

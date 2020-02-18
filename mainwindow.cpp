@@ -6,9 +6,9 @@
 #include "tracklistmodel.h"
 #include "uiutil/extendederrordialog.h"
 #include "extractparametersdialog.h"
-#include "extractrunner.h"
 #include "uiutil/futureprogressdialog.h"
 #include "musicbrainzaskdialog.h"
+#include "extractor.h"
 
 #include <QMessageBox>
 #include <QMenu>
@@ -234,40 +234,34 @@ void MainWindow::beginExtract()
     if (!dialog.exec())
         return;
 
-    ProgressDialog *pdialog = new ProgressDialog(this);
-    ExtractRunner *runner = new ExtractRunner(m_trackmodel, this);
-    connect(runner, &ExtractRunner::finished, runner, &QObject::deleteLater);
-    connect(runner, &ExtractRunner::finished, pdialog, &QObject::deleteLater);
-    connect(runner, &ExtractRunner::finished, this, &MainWindow::extractSuccess);
-    connect(runner, &ExtractRunner::failed, runner, &QObject::deleteLater);
-    connect(runner, &ExtractRunner::failed, pdialog, &QObject::deleteLater);
-    connect(runner, &ExtractRunner::failed, this, &MainWindow::extractError);
-    connect(runner, &ExtractRunner::progress, pdialog, &ProgressDialog::setValue);
-    connect(runner, &ExtractRunner::status, pdialog, &ProgressDialog::setLabelText);
-    connect(pdialog, &ProgressDialog::canceled, runner, &ExtractRunner::cancel);
+    std::vector<Extractor::TrackToExtract> tracks;
+    for (int i = 0; i < m_trackmodel->trackCount(); ++i) {
+        if (m_trackmodel->trackSelected(i)) {
+            Extractor::TrackToExtract t;
+            t.start = m_trackmodel->trackBegin(i);
+            t.length = m_trackmodel->trackLength(i);
+            t.metadata = m_trackmodel->trackMetadata(i);
+            tracks.push_back(t);
+        }
+    }
 
-    pdialog->setWindowTitle(tr("Extracting audio..."));
-    pdialog->setMinimum(runner->progressMin());
-    pdialog->setMaximum(runner->progressMax());
-    pdialog->setLabelText(tr("Initializing..."));
-    pdialog->setModal(true);
-    pdialog->show();
+    QFuture<QString> f = Extractor::extract(m_trackmodel->device(),
+                                            dialog.outputDir(),
+                                            dialog.format(),
+                                            tracks,
+                                            dialog.paranoiaActivated() ? Extractor::READ_PARANOIA : Extractor::READ_FAST);
 
-    runner->setOutputDirectory(dialog.outputDir());
-    runner->setFormat(dialog.format());
-    runner->setUseParanoia(dialog.paranoiaActivated());
+    m_progressDialog->setWindowTitle(tr("Extracting Audio..."));
+    m_progressDialog->setFuture(f);
 
-    runner->start();
-}
 
-void MainWindow::extractError(const QString &msg)
-{
-    ExtendedErrorDialog::show(this, tr("Audio extraction failed."), msg);
-}
-
-void MainWindow::extractSuccess()
-{
-    QMessageBox::information(this, tr("Success"), tr("Audio extraction completed successfully."), QMessageBox::Ok);
+    TaskRunner::handle_result(f, this, [=](const QString &error){
+        if (error.size()) {
+            ExtendedErrorDialog::show(this, tr("Audio extraction failed."), error);
+        } else {
+            QMessageBox::information(this, tr("Success"), tr("Audio extraction completed successfully."), QMessageBox::Ok);
+        }
+    });
 }
 
 void MainWindow::tableHeaderClicked(int logicalIndex)

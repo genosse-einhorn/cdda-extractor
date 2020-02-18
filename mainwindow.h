@@ -31,9 +31,6 @@ private slots:
     void resetUi();
     void beginExtract();
 
-    void extractError(const QString &msg);
-    void extractSuccess();
-
     void tableHeaderClicked(int logicalIndex);
 
 private:

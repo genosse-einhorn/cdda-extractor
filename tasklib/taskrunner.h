@@ -46,6 +46,10 @@ public:
     void reportProgressValueAndText(int val, const QString &text) const {
         m_future->setProgressValueAndText(val, text);
     }
+
+    int progressValue(void) const {
+        return m_future->progressValue();
+    }
 };
 
 class CancelWatcher : public QObject
@@ -111,7 +115,7 @@ template <typename TFunctor>
 struct priv_invoker
 {
     template<typename... TArgs>
-    static void invoke(QObject *, TFunctor &&functor, TArgs &&... args) {
+    static void invoke(QObject *, const TFunctor &functor, TArgs &&... args) {
         functor(std::forward<TArgs>(args)...);
     }
 };

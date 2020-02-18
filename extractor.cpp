@@ -1,27 +1,22 @@
-#include "extractrunnerworker.h"
+#include "extractor.h"
 
-#include <QApplication>
-#include <QFile>
-#include <QDir>
-#ifdef Q_OS_UNIX
-#   include <errno.h>
-#   include <unistd.h>
-#   include <sys/types.h>
-#   include <sys/stat.h>
-#   include <fcntl.h>
-#endif
-#include <memory>
-#include <functional>
-#include <QThread>
-
-#include "libcdda/os_util.h"
+#include "tasklib/taskrunner.h"
 #include "libcdda/drive_handle.h"
-
+#include "libcdda/os_util.h"
 #include "paranoia/paranoia.h"
-
-#include "encoder/wavencoder.h"
 #include "encoder/flacencoder.h"
 #include "encoder/lameencoder.h"
+#include "encoder/wavencoder.h"
+
+#include <QFile>
+#include <QDir>
+
+#ifdef Q_OS_WIN32
+#   include <windows.h>
+#else
+#   include <unistd.h>
+#   include <fcntl.h>
+#endif
 
 namespace {
 
@@ -74,12 +69,15 @@ QIODevice *createFileExclusive(const QString &filename, QString *error)
     *error = cdda::os_error_to_str(GetLastError());
     return nullptr;
 #else
-#error openFileExclusive() not implemented for your OS
+#error createFileExclusive() not implemented for your OS
 #endif
 }
 
 struct ReaderBase
 {
+    const TaskRunner::CancelToken &m_cancelToken;
+
+    ReaderBase(const TaskRunner::CancelToken &cancelToken) : m_cancelToken(cancelToken) {}
     virtual ~ReaderBase() {}
     virtual bool eof() = 0;
     virtual bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) = 0;
@@ -93,18 +91,16 @@ private:
     cdda::block_addr m_pos;
     cdda::block_addr_delta m_remaining;
     qint16 m_buffer[588*2*20]; // FIXME: why 20 blocks?
-    bool *m_cancelPtr { nullptr };
 
 public:
-    RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, bool *cancelPtr = nullptr)
-        : m_handle(handle), m_pos(start), m_remaining(len), m_cancelPtr(cancelPtr)
+    RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, const TaskRunner::CancelToken &cancelToken)
+        : ReaderBase(cancelToken), m_handle(handle), m_pos(start), m_remaining(len)
     {}
 
     bool eof() override { return m_remaining.delta_blocks <= 0; }
     bool read(qint16 **pBuffer, cdda::block_addr_delta *pBuflen) override
     {
-        QCoreApplication::processEvents();
-        if (m_cancelPtr && *m_cancelPtr)
+        if (m_cancelToken.isCanceled())
             return false;
 
         auto count = std::min(cdda::block_addr_delta::from_lba(int(sizeof(m_buffer)/2352)), m_remaining);
@@ -125,9 +121,9 @@ public:
     }
     QString errorMessage() override
     {
-        if (m_cancelPtr && *m_cancelPtr)
+        if (m_cancelToken.isCanceled())
         {
-            return ExtractRunnerWorker::tr("Canceled by user");
+            return Extractor::tr("Canceled by user");
         }
         else
         {
@@ -141,18 +137,13 @@ class ParanoiaReader : public ReaderBase
 private:
     cdda::drive_handle &m_handle;
     int m_blocksRemaining;
-    bool *m_canceledPtr = nullptr;
-
     cdrom_paranoia *m_paranoiaHandle;
 
     static long paranoiaReadfunc(void *userdata, void *buffer, long start, long len)
     {
         auto self = (ParanoiaReader*)userdata;
 
-        // paranoia will internally do many reads of damaged sectors or jittery read
-        // do some event processing to make cancel work
-        QCoreApplication::processEvents();
-        if (self->m_canceledPtr && *self->m_canceledPtr)
+        if (self->m_cancelToken.isCanceled())
             return CDDA_ERROR_CANCELED;
 
         if (self->m_handle.read(buffer, cdda::block_addr::from_lba(int(start)), cdda::block_addr_delta::from_lba(int(len))))
@@ -162,8 +153,8 @@ private:
     }
 
 public:
-    ParanoiaReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, bool *canceledPtr = nullptr)
-        : m_handle(handle), m_canceledPtr(canceledPtr)
+    ParanoiaReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, const TaskRunner::CancelToken &cancelToken)
+        : ReaderBase(cancelToken), m_handle(handle)
     {
         m_paranoiaHandle = paranoia_init(&ParanoiaReader::paranoiaReadfunc,
                                          this,
@@ -196,9 +187,9 @@ public:
     }
     QString errorMessage() override
     {
-        if (m_canceledPtr && *m_canceledPtr)
+        if (m_cancelToken.isCanceled())
         {
-            return ExtractRunnerWorker::tr("Canceled by user");
+            return Extractor::tr("Canceled by user");
         }
         else
         {
@@ -207,39 +198,34 @@ public:
     }
 };
 
-} // anonymous namespace
-
-ExtractRunnerWorker::ExtractRunnerWorker(QObject *parent) : QObject(parent)
+QString extractTrack(cdda::drive_handle &handle,
+                     const Extractor::TrackToExtract &track,
+                     const QString &outdir,
+                     const QString &format,
+                     const TaskRunner::CancelToken &cancelToken,
+                     const TaskRunner::ProgressToken &progressToken,
+                     Extractor::ReadingMode mode)
 {
+    // initialize reader
+    std::unique_ptr<ReaderBase> reader;
 
-}
-
-void ExtractRunnerWorker::openDevice(const QString &device, bool paranoiaMode)
-{
-    m_handle = cdda::drive_handle::open(device);
-    if (!m_handle)
-    {
-        emit failed(tr("Could not open %1: %2").arg(device).arg(m_handle.last_error()));
-    }
-
-    m_paranoiaMode = paranoiaMode;
-}
-
-void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &basename,
-                                       const QString &format, cdda::block_addr start,
-                                       cdda::block_addr_delta length, const cdda::track_metadata &metadata)
-{
-    m_cancelRequested = false;
+    if (mode == Extractor::READ_PARANOIA)
+        reader.reset(new ParanoiaReader(handle, track.start, track.length, cancelToken));
+    else
+        reader.reset(new RawReader(handle, track.start, track.length, cancelToken));
 
     // create directories
-    if (!QDir(directory).mkpath(QStringLiteral(".")))
-    {
-        emit failed(tr("Could not create directory %1").arg(directory));
-        return;
-    }
+    if (!QDir(outdir).mkpath(QStringLiteral(".")))
+        return Extractor::tr("Could not create directory %1").arg(outdir);
+
 
     // create file without overwriting files already there
-    QString filename = QStringLiteral("%1/%2.%3").arg(directory, basename, format);
+    QString basename = QStringLiteral("%1 - %2")
+            .arg(track.metadata.trackno, 2, 10, QLatin1Char('0'))
+            .arg(track.metadata.title.size() ? track.metadata.title : QStringLiteral("Track %1").arg(track.metadata.trackno));
+
+    QString filename = QStringLiteral("%1/%2.%3").arg(outdir, basename, format);
+
     QString error;
     std::unique_ptr<QIODevice> device(createFileExclusive(filename, &error));
     unsigned c = 0;
@@ -247,22 +233,12 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
     {
         // file exists - try next one
         ++c;
-        filename = QStringLiteral("%1/%2 (%4).%3").arg(directory, basename, format).arg(c);
+        filename = QStringLiteral("%1/%2 (%4).%3").arg(outdir, basename, format).arg(c);
         device.reset(createFileExclusive(filename, &error));
     }
 
     if (!device.get())
-    {
-        emit failed(tr("Could not create file %1: %2").arg(filename, error));
-        return;
-    }
-
-    QCoreApplication::processEvents();
-    if (m_cancelRequested)
-    {
-        emit failed(tr("Canceled by user."));
-        return;
-    }
+        return Extractor::tr("Could not create file %1: %2").arg(filename, error);
 
     // create encoder instance
     std::unique_ptr<Encoder::AbstractEncoder> encoder;
@@ -275,23 +251,11 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
         encoder.reset(new Encoder::WavEncoder());
 
     // initialize encoder
-    if (!encoder->initialize(device.get(), length.delta_blocks*588, metadata))
-    {
-        emit failed(tr("Failed to initialize encoder: %1").arg(encoder->errorText()));
-        return;
-    }
+    if (!encoder->initialize(device.get(), track.length.delta_blocks*588, track.metadata))
+        return Extractor::tr("Failed to initialize encoder: %1").arg(encoder->errorText());
 
-    // initialize paranoia
-    std::unique_ptr<ReaderBase> reader;
-
-    if (m_paranoiaMode)
-    {
-        reader.reset(new ParanoiaReader(m_handle, start, length, &m_cancelRequested));
-    }
-    else
-    {
-        reader.reset(new RawReader(m_handle, start, length, &m_cancelRequested));
-    }
+    // now extract data
+    cdda::block_addr_delta processed_blocks { 0 };
 
     // really simple pre-gap detection: chop off silence from the end
     qint64 trailingSilentSamples = 0;
@@ -300,12 +264,9 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
     while (!reader->eof())
     {
         qint16 *buf;
-        cdda::block_addr_delta buflen;
+        cdda::block_addr_delta buflen { 0 };
         if (!reader->read(&buf, &buflen))
-        {
-            emit failed(tr("Failed to read from CD: %1").arg(reader->errorMessage()));
-            return;
-        }
+            return Extractor::tr("Failed to read from CD: %1").arg(reader->errorMessage());
 
         // pre-gap detection
         qint64 samples = 588*buflen.delta_blocks;
@@ -324,38 +285,61 @@ void ExtractRunnerWorker::beginExtract(const QString &directory, const QString &
                 qint16 silentBuf[200] = {};
                 qint64 n = std::min(trailingSilentSamples, qint64(sizeof(silentBuf)/sizeof(silentBuf[0]))/2);
                 if (!encoder->feed(silentBuf, n))
-                {
-                    emit failed(tr("Failed while encoding audio: %1").arg(encoder->errorText()));
-                    return;
-                }
+                    return Extractor::tr("Failed while encoding audio: %1").arg(encoder->errorText());
 
                 trailingSilentSamples -= n;
             }
 
             // encode it
             if (!encoder->feed(buf, samples))
-            {
-                emit failed(tr("Failed while encoding audio: %1").arg(encoder->errorText()));
-                return;
-            }
+                return Extractor::tr("Failed while encoding audio: %1").arg(encoder->errorText());
         }
 
         trailingSilentSamples += silentSamplesThisBuf;
 
-        emit progress(buflen);
+        processed_blocks += buflen;
+        progressToken.reportProgressValueAndText(progressToken.progressValue() + buflen.delta_blocks,
+                                                 Extractor::tr("Extracting Track %1 (%2)")
+                                                             .arg(track.metadata.trackno)
+                                                             .arg(processed_blocks.to_display()));
     }
 
     // finalize encoding
     if (!encoder->finish())
-    {
-        emit failed(tr("Failed to finalize encoding: %1").arg(encoder->errorText()));
-        return;
-    }
+        return Extractor::tr("Failed to finalize encoding: %1").arg(encoder->errorText());
 
-    emit finished();
+    return QString();
 }
 
-void ExtractRunnerWorker::cancel()
+} // anonymous namespace
+
+QFuture<QString> Extractor::extract(const QString &device, const QString &outdir, const QString &format,
+                                    const std::vector<Extractor::TrackToExtract> &tracks,
+                                    ReadingMode mode)
 {
-    m_cancelRequested = true;
+    return TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &progressToken) {
+        // initialize progress reporting
+        int totallen = 0;
+        for (const auto &track : tracks) {
+            totallen += track.length.delta_blocks;
+        }
+
+        progressToken.reportProgressRange(0, totallen);
+        progressToken.reportProgressValueAndText(1, tr("Initializing..."));
+
+        // open drive
+        cdda::drive_handle handle = cdda::drive_handle::open(device);
+        if (!handle) {
+            return tr("Could not open %1: %2").arg(device).arg(handle.last_error());
+        }
+
+        // extract tracks
+        for (const auto &track : tracks) {
+            QString e = extractTrack(handle, track, outdir, format, cancelToken, progressToken, mode);
+            if (e.length())
+                return e;
+        }
+
+        return QString();
+    });
 }
