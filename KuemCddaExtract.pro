@@ -117,62 +117,6 @@ qtCompileTest(lame) {
 packagesExist(flac) {
     PKGCONFIG += flac
 } else {
-    SOURCES_FLAC += \
-        libFLAC/src/bitmath.c \
-        libFLAC/src/bitreader.c \
-        libFLAC/src/bitwriter.c \
-        libFLAC/src/cpu.c \
-        libFLAC/src/crc.c \
-        libFLAC/src/fixed.c \
-        libFLAC/src/fixed_intrin_sse2.c \
-        libFLAC/src/fixed_intrin_ssse3.c \
-        libFLAC/src/float.c \
-        libFLAC/src/format.c \
-        libFLAC/src/lpc.c \
-        libFLAC/src/lpc_intrin_avx2.c \
-        libFLAC/src/lpc_intrin_sse.c \
-        libFLAC/src/lpc_intrin_sse2.c \
-        libFLAC/src/lpc_intrin_sse41.c \
-        libFLAC/src/md5.c \
-        libFLAC/src/memory.c \
-        libFLAC/src/metadata_iterators.c \
-        libFLAC/src/metadata_object.c \
-        libFLAC/src/stream_decoder.c \
-        libFLAC/src/stream_encoder.c \
-        libFLAC/src/stream_encoder_framing.c \
-        libFLAC/src/stream_encoder_intrin_avx2.c \
-        libFLAC/src/stream_encoder_intrin_sse2.c \
-        libFLAC/src/stream_encoder_intrin_ssse3.c \
-        libFLAC/src/window.c
-
-    win32 {
-        SOURCES_FLAC += \
-            libFLAC/src/windows_unicode_filenames.c
-    }
-
-    FLAC_PACKAGE_VERSION = 1.3.2
-    FLAC_CFLAGS = -DFLAC__HAS_OGG=0 -DFLAC__ALIGN_MALLOC_DATA -DHAVE_LROUND -DHAVE_STDINT_H -DHAVE_FSEEKO \
-        -DFLAC__NO_DLL -DPACKAGE_VERSION=\\\"$${FLAC_PACKAGE_VERSION}\\\" \
-        -I$${PWD}/libFLAC/src/include
-    msvc {
-        FLAC_CFLAGS += /wd4267 /wd4334 /wd4244 -D_CRT_NONSTDC_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS
-    } else {
-        FLAC_CFLAGS += -Wno-implicit-fallthrough
-    }
-
-    flac.name = flac
-    flac.input = SOURCES_FLAC
-    flac.dependency_type = TYPE_C
-    flac.variable_out = OBJECTS
-    flac.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_IN_BASE}$${first(QMAKE_EXT_OBJ)}
-    flac.commands = $${QMAKE_CC} $(CFLAGS) $${FLAC_CFLAGS} $(INCPATH) -c ${QMAKE_FILE_IN}
-    msvc: flac.commands += -Fo${QMAKE_FILE_OUT}
-    else: flac.commands += -o ${QMAKE_FILE_OUT}
-    QMAKE_EXTRA_COMPILERS += flac
-
-    INCLUDEPATH += libFLAC/include
-    DEFINES += FLAC__NO_DLL
-
-    DISTFILES +=  \
-        libFLAC/COPYING.Xiph
+    # link to it anyway
+    LIBS += -lFLAC
 }
