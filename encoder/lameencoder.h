@@ -4,10 +4,14 @@
 #include "abstractencoder.h"
 #include "lame_backend.h"
 
+#include <QCoreApplication>
+
 namespace Encoder {
 
 class LameEncoder : public AbstractEncoder
 {
+    Q_DECLARE_TR_FUNCTIONS(LameEncoder)
+
 public:
     LameEncoder();
     ~LameEncoder();

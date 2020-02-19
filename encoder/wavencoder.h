@@ -3,10 +3,14 @@
 
 #include "abstractencoder.h"
 
+#include <QCoreApplication>
+
 namespace Encoder {
 
 class WavEncoder : public Encoder::AbstractEncoder
 {
+    Q_DECLARE_TR_FUNCTIONS(WavEncoder)
+
 public:
     WavEncoder();
     ~WavEncoder() override;

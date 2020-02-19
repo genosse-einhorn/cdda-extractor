@@ -6,10 +6,14 @@
 #include <FLAC/stream_encoder.h>
 #include <vector>
 
+#include <QCoreApplication>
+
 namespace Encoder {
 
 class FlacEncoder : public AbstractEncoder
 {
+    Q_DECLARE_TR_FUNCTIONS(FlacEncoder)
+
 public:
     FlacEncoder();
     ~FlacEncoder();

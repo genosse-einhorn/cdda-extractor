@@ -81,7 +81,7 @@ bool LameEncoder::initialize(QIODevice *device, qint64 numSamples, const cdda::t
 
     if (device->write((const char*)&buf[0], buf.size()) != qint64(buf.size()))
     {
-        m_error = QObject::tr("I/O error: %1").arg(device->errorString());
+        m_error = tr("I/O error: %1").arg(device->errorString());
         return false;
     }
 
@@ -97,14 +97,14 @@ bool LameEncoder::feed(const qint16 *buf, qint64 numSamples)
 
     if (c < 0)
     {
-        m_error = QObject::tr("MP3/LAME error %1").arg(c);
+        m_error = tr("MP3/LAME error %1").arg(c);
         return false;
     }
     else
     {
         if (m_device->write((const char *)&mp3buf[0], c) != c)
         {
-            m_error = QObject::tr("I/O error: %1").arg(m_device->errorString());
+            m_error = tr("I/O error: %1").arg(m_device->errorString());
 
             return false;
         }
@@ -121,14 +121,14 @@ bool LameEncoder::finish()
 
     if (c < 0)
     {
-        m_error = QObject::tr("MP3/LAME error %1").arg(c);
+        m_error = tr("MP3/LAME error %1").arg(c);
         return false;
     }
     else
     {
         if (m_device->write((const char *)lastbits, c) != c)
         {
-            m_error = QObject::tr("I/O error: %1").arg(m_device->errorString());
+            m_error = tr("I/O error: %1").arg(m_device->errorString());
 
             return false;
         }

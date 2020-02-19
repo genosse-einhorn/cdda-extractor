@@ -160,7 +160,7 @@ bool Encoder::FlacEncoder::initialize(QIODevice *device, qint64, const cdda::tra
 
     if (status != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
     {
-        m_error = QObject::tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderInitStatusString[status]));
+        m_error = tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderInitStatusString[status]));
         return false;
     }
 
@@ -185,7 +185,7 @@ bool Encoder::FlacEncoder::feed(const qint16 *buf16, qint64 numSamples)
         if (!FLAC__stream_encoder_process_interleaved(m_encoder, buf32, unsigned(step)))
         {
             auto status = FLAC__stream_encoder_get_state(m_encoder);
-            m_error = QObject::tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderInitStatusString[status]));
+            m_error = tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderInitStatusString[status]));
             return false;
         }
 
@@ -197,7 +197,7 @@ bool Encoder::FlacEncoder::feed(const qint16 *buf16, qint64 numSamples)
         if (!FLAC__stream_encoder_process_interleaved(m_encoder, buf32, 1))
         {
             auto status = FLAC__stream_encoder_get_state(m_encoder);
-            m_error = QObject::tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderStateString[status]));
+            m_error = tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderStateString[status]));
             return false;
         }
     }
@@ -213,7 +213,7 @@ bool Encoder::FlacEncoder::finish()
     if (!ok)
     {
         auto status = FLAC__stream_encoder_get_state(m_encoder);
-        m_error = QObject::tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderStateString[status]));
+        m_error = tr("FLAC Error: %1").arg(QString::fromUtf8(FLAC__StreamEncoderStateString[status]));
     }
 
     FLAC__stream_encoder_delete(m_encoder);

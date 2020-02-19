@@ -62,7 +62,7 @@ bool Encoder::WavEncoder::initialize(QIODevice *device, qint64 numSamples, const
     qint64 written = m_device->write((char*)&header, sizeof(header));
     if (written != sizeof(header))
     {
-        m_errorText = QObject::tr("I/O error: %1").arg(m_device->errorString());
+        m_errorText = tr("I/O error: %1").arg(m_device->errorString());
         return false;
     }
 
@@ -74,7 +74,7 @@ bool Encoder::WavEncoder::feed(const qint16 *buf, qint64 numSamples)
     qint64 written = m_device->write((const char*)buf, numSamples * 4);
     if (written != numSamples*4)
     {
-        m_errorText = QObject::tr("I/O error: %1").arg(m_device->errorString());
+        m_errorText = tr("I/O error: %1").arg(m_device->errorString());
         return false;
     }
 
