@@ -45,10 +45,10 @@ bool Encoder::WavEncoder::initialize(QIODevice *device, qint64 numSamples, const
     } header;
 #pragma pack(pop)
     std::memset(&header, 0, sizeof(header));
-    std::strncpy(header.ChunkID, "RIFF", sizeof(header.ChunkID));
+    std::memcpy(header.ChunkID, "RIFF", 4);
     header.ChunkSize = quint32(sizeof(header)-8+numSamples*4);
-    std::strncpy(header.Format, "WAVE", sizeof(header.Format));
-    std::strncpy(header.fmt.ChunkID, "fmt ", sizeof(header.fmt.ChunkID));
+    std::memcpy(header.Format, "WAVE", 4);
+    std::memcpy(header.fmt.ChunkID, "fmt ", 4);
     header.fmt.ChunkSize = sizeof(header.fmt)-8;
     header.fmt.AudioFormat = 1; // PCM;
     header.fmt.NumChannels = 2;
@@ -56,7 +56,7 @@ bool Encoder::WavEncoder::initialize(QIODevice *device, qint64 numSamples, const
     header.fmt.ByteRate = 44100 * 4;
     header.fmt.BlockAlign = 4;
     header.fmt.BitsPerSample = 16;
-    std::strncpy(header.data.ChunkID, "data", sizeof(header.data.ChunkID));
+    std::memcpy(header.data.ChunkID, "data", 4);
     header.data.ChunkSize = quint32(numSamples * 4);
 
     qint64 written = m_device->write((char*)&header, sizeof(header));
