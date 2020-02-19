@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>585</width>
+    <width>599</width>
     <height>504</height>
    </rect>
   </property>
@@ -325,22 +325,6 @@ Uncompressed file format without metadata. Not recommended.</string>
     <hint type="destinationlabel">
      <x>1200</x>
      <y>81</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>bStart</sender>
-   <signal>clicked()</signal>
-   <receiver>ExtractParametersDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>519</x>
-     <y>471</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>614</x>
-     <y>32</y>
     </hint>
    </hints>
   </connection>

@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QIcon>
+#include <QSettings>
 
 ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     QDialog(parent),
@@ -61,6 +62,27 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
     ui->iwFolder->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     ui->iwCd->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     ui->iwFileFormat->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+    QSettings settings;
+    QString dir = settings.value(QStringLiteral("Output Directory")).toString();
+    if (dir.size() && QDir(dir).exists()) {
+        ui->eOutputDirectory->setText(dir);
+    }
+    ui->cbCreateSubfolder->setChecked(settings.value(QStringLiteral("Create Subfolder"), bool(true)).toBool());
+    QString mode = settings.value(QStringLiteral("Paranoia Mode"), QStringLiteral("paranoia")).toString();
+    if (mode == QLatin1String("paranoia")) {
+        ui->rbParanoiaExtract->setChecked(true);
+    } else {
+        ui->rbFastExtract->setChecked(true);
+    }
+    QString format = settings.value(QStringLiteral("Format"), QStringLiteral("flac")).toString();
+    if (format == QLatin1String("flac")) {
+        ui->rbFlac->setChecked(true);
+    } else if (format == QLatin1String("mp3") && ui->rbMp3->isEnabled()) {
+        ui->rbMp3->setChecked(true);
+    } else if (format == QLatin1String("wav")) {
+        ui->rbWav->setChecked(true);
+    }
 }
 
 ExtractParametersDialog::~ExtractParametersDialog()
@@ -106,6 +128,21 @@ void ExtractParametersDialog::on_bBrowseDir_clicked()
                                                     ui->eOutputDirectory->text());
     if (dir.size())
         ui->eOutputDirectory->setText(dir);
+}
+
+void ExtractParametersDialog::on_bStart_clicked()
+{
+    QSettings settings;
+    settings.setValue(QStringLiteral("Output Directory"), ui->eOutputDirectory->text());
+    settings.setValue(QStringLiteral("Create Subfolder"), ui->cbCreateSubfolder->isChecked());
+    if (ui->rbParanoiaExtract->isChecked()) {
+        settings.setValue(QStringLiteral("Paranoia Mode"), QStringLiteral("paranoia"));
+    } else {
+        settings.setValue(QStringLiteral("Paranoia Mode"), QStringLiteral("fast"));
+    }
+    settings.setValue(QStringLiteral("Format"), format());
+
+    accept();
 }
 
 

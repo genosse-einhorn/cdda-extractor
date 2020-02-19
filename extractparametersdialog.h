@@ -23,6 +23,7 @@ public:
 
 private slots:
     void on_bBrowseDir_clicked();
+    void on_bStart_clicked();
 
 private:
     Ui::ExtractParametersDialog *ui;
