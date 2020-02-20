@@ -1,6 +1,7 @@
 #include "extractparametersdialog.h"
 #include "ui_extractparametersdialog.h"
 #include "uiutil/win32iconloader.h"
+#include "fileutil.h"
 
 #include <QStandardPaths>
 #include <QFileDialog>
@@ -83,14 +84,14 @@ void ExtractParametersDialog::setAlbumInfo(const QString &title, const QString &
 {
     m_album = title;
     m_artist = artist;
-    ui->cbCreateSubfolder->setText(tr("Create Subfolder: %1/%2").arg(artist).arg(title));
+    ui->cbCreateSubfolder->setText(tr("Create Subfolder: %1/%2").arg(FileUtil::sanitizeFilename(artist)).arg(FileUtil::sanitizeFilename(title)));
 }
 
 QString ExtractParametersDialog::outputDir() const
 {
     QString dir = ui->eOutputDirectory->text();
     if (ui->cbCreateSubfolder->isChecked())
-        dir = QStringLiteral("%1/%2/%3").arg(dir, m_artist, m_album);
+        dir = QStringLiteral("%1/%2/%3").arg(dir, FileUtil::sanitizeFilename(m_artist), FileUtil::sanitizeFilename(m_album));
 
     return dir;
 }

@@ -2,76 +2,16 @@
 
 #include "tasklib/taskrunner.h"
 #include "libcdda/drive_handle.h"
-#include "libcdda/os_util.h"
 #include "paranoia/paranoia.h"
 #include "encoder/flacencoder.h"
 #include "encoder/lameencoder.h"
 #include "encoder/wavencoder.h"
+#include "fileutil.h"
 
 #include <QFile>
 #include <QDir>
 
-#ifdef Q_OS_WIN32
-#   include <windows.h>
-#else
-#   include <unistd.h>
-#   include <fcntl.h>
-#endif
-
 namespace {
-
-QIODevice *createFileExclusive(const QString &filename, QString *error)
-{
-#if defined(Q_OS_UNIX)
-    QByteArray filename8bit = QFile::encodeName(filename);
-
-    error->clear();
-
-    int fd = open(filename8bit.constData(), O_CREAT | O_EXCL | O_WRONLY, 0755);
-    if (fd >= 0)
-    {
-        QFile *retval = new QFile();
-        if (retval->open(fd, QIODevice::WriteOnly, QFile::AutoCloseHandle))
-            return retval;
-
-        *error = retval->errorString();
-        delete retval;
-        return nullptr;
-    }
-
-    if (errno == EEXIST)
-        return nullptr;
-
-    *error = cdda::os_error_to_str(errno);
-    return nullptr;
-#elif defined(Q_OS_WIN32)
-    QString nativeFn = QDir::toNativeSeparators(filename);
-    HANDLE h = CreateFile(LPCWSTR(nativeFn.utf16()),
-                          GENERIC_WRITE, 0, nullptr,
-                          CREATE_NEW, FILE_ATTRIBUTE_NORMAL,
-                          nullptr);
-    if (h != 0 && h != INVALID_HANDLE_VALUE)
-    {
-        // QFile won't take our handle - so close it and open it again
-        CloseHandle(h);
-        QFile *retval = new QFile(filename);
-        if (retval->open(QIODevice::WriteOnly))
-            return retval;
-
-        *error = retval->errorString();
-        delete retval;
-        return nullptr;
-    }
-
-    if (GetLastError() == ERROR_FILE_EXISTS)
-        return nullptr;
-
-    *error = cdda::os_error_to_str(GetLastError());
-    return nullptr;
-#else
-#error createFileExclusive() not implemented for your OS
-#endif
-}
 
 struct ReaderBase
 {
@@ -220,21 +160,21 @@ QString extractTrack(cdda::drive_handle &handle,
 
 
     // create file without overwriting files already there
-    QString basename = QStringLiteral("%1 - %2")
+    QString basename = FileUtil::sanitizeFilename(QStringLiteral("%1 - %2")
             .arg(track.metadata.trackno, 2, 10, QLatin1Char('0'))
-            .arg(track.metadata.title.size() ? track.metadata.title : QStringLiteral("Track %1").arg(track.metadata.trackno));
+            .arg(track.metadata.title.size() ? track.metadata.title : QStringLiteral("Track %1").arg(track.metadata.trackno)));
 
     QString filename = QStringLiteral("%1/%2.%3").arg(outdir, basename, format);
 
     QString error;
-    std::unique_ptr<QIODevice> device(createFileExclusive(filename, &error));
+    std::unique_ptr<QIODevice> device(FileUtil::createFileExclusive(filename, &error));
     unsigned c = 0;
     while (!device.get() && !error.size())
     {
         // file exists - try next one
         ++c;
         filename = QStringLiteral("%1/%2 (%4).%3").arg(outdir, basename, format).arg(c);
-        device.reset(createFileExclusive(filename, &error));
+        device.reset(FileUtil::createFileExclusive(filename, &error));
     }
 
     if (!device.get())

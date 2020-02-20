@@ -28,6 +28,7 @@ DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 SOURCES += main.cpp\
     extractor.cpp \
+    fileutil.cpp \
         mainwindow.cpp \
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
@@ -60,6 +61,7 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     extractor.h \
+    fileutil.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     musicbrainz/releasefinder.h \
