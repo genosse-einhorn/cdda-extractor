@@ -2,9 +2,9 @@
 #define LAMEENCODER_H
 
 #include "abstractencoder.h"
-#include "lame_backend.h"
 
 #include <QCoreApplication>
+#include <lame.h>
 
 namespace Encoder {
 
@@ -24,10 +24,9 @@ public:
     QString errorText() override;
 
 private:
-    LameFuncTable *m_lame;
-    LameHandle m_gfp;
+    lame_global_flags *m_gfp { nullptr };
 
-    QIODevice *m_device;
+    QIODevice *m_device { nullptr };
     QString m_error;
 };
 

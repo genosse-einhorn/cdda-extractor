@@ -160,9 +160,6 @@ Trust the hardware to read data correctly, which almost all drives do.</string>
       </item>
       <item row="2" column="2">
        <widget class="ClickableBuddyLabel" name="lMp3">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="text">
          <string>&lt;b&gt;&amp;MP3&lt;/b&gt;, 192kbit/s (.mp3)&lt;br&gt;
 Lossy compression with potentially audible quality degradation.</string>
@@ -174,9 +171,6 @@ Lossy compression with potentially audible quality degradation.</string>
       </item>
       <item row="2" column="1">
        <widget class="QRadioButton" name="rbMp3">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
         <property name="text">
          <string/>
         </property>

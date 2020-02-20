@@ -81,7 +81,6 @@ HEADERS  += mainwindow.h \
     paranoia/paranoia.h \
     paranoia/smallft.h \
     encoder/flacencoder.h \
-    encoder/lame_backend.h \
     encoder/lameencoder.h \
     uiutil/clickablebuddylabel.h \
     uiutil/extendederrordialog.h \
@@ -103,15 +102,7 @@ DISTFILES += \
     paranoia/README
 
 # MP3
-load(configure)
-qtCompileTest(lame) {
-    SOURCES += \
-        encoder/lame_backend_linked.cpp
-    LIBS += -lmp3lame
-} else {
-    SOURCES += \
-        encoder/lame_backend_dll.cpp
-}
+LIBS += -lmp3lame
 
 # FLAC
 packagesExist(flac) {
