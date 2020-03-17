@@ -235,7 +235,7 @@
        <item row="2" column="1">
         <widget class="ClickableBuddyLabel" name="lComposer">
          <property name="text">
-          <string>Co&amp;mposer</string>
+          <string>C&amp;omposer</string>
          </property>
          <property name="buddy">
           <cstring>eComposer</cstring>
