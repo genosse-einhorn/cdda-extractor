@@ -14,9 +14,6 @@ MusicBrainzAskDialog::MusicBrainzAskDialog(QWidget *parent) :
     ui(new Ui::MusicBrainzAskDialog)
 {
     ui->setupUi(this);
-
-    connect(ui->noBtn, &QPushButton::clicked, this, &QDialog::reject);
-    connect(ui->yesBtn, &QPushButton::clicked, this, &QDialog::accept);
 }
 
 MusicBrainzAskDialog::~MusicBrainzAskDialog()
@@ -28,15 +25,7 @@ bool MusicBrainzAskDialog::showAskDialog(QWidget *owner)
 {
     MusicBrainzAskDialog dialog(owner);
 
-    QSettings settings;
-
-    if (dialog.exec() == QDialog::Accepted) {
-        settings.setValue(QStringLiteral("MusicBrainz Auto Download"), int(MUSICBRAINZ_DOWNLOAD_YES));
-        return true;
-    } else {
-        settings.setValue(QStringLiteral("MusicBrainz Auto Download"), int(MUSICBRAINZ_DOWNLOAD_NO));
-        return false;
-    }
+    return dialog.exec() == MUSICBRAINZ_DOWNLOAD_YES;
 }
 
 bool MusicBrainzAskDialog::downloadOkMaybeAsk(QWidget *parentWindow)
@@ -58,4 +47,20 @@ bool MusicBrainzAskDialog::downloadOk()
 
     int val = settings.value(QStringLiteral("MusicBrainz Auto Download"), int(MUSICBRAINZ_DOWNLOAD_UNDECIDED)).toInt();
     return val == MUSICBRAINZ_DOWNLOAD_YES;
+}
+
+void MusicBrainzAskDialog::on_yesBtn_clicked()
+{
+    QSettings settings;
+    settings.setValue(QStringLiteral("MusicBrainz Auto Download"), int(MUSICBRAINZ_DOWNLOAD_YES));
+
+    done(MUSICBRAINZ_DOWNLOAD_YES);
+}
+
+void MusicBrainzAskDialog::on_noBtn_clicked()
+{
+    QSettings settings;
+    settings.setValue(QStringLiteral("MusicBrainz Auto Download"), int(MUSICBRAINZ_DOWNLOAD_NO));
+
+    done(MUSICBRAINZ_DOWNLOAD_NO);
 }

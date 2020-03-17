@@ -19,6 +19,11 @@ public:
     static bool downloadOkMaybeAsk(QWidget *parentWindow);
     static bool downloadOk(void);
 
+private slots:
+    void on_yesBtn_clicked();
+
+    void on_noBtn_clicked();
+
 private:
     Ui::MusicBrainzAskDialog *ui;
 };
