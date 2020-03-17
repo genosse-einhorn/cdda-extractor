@@ -34,6 +34,7 @@ SOURCES += main.cpp\
     libcdda/toc.cpp \
     musicbrainz/releasefinder.cpp \
     musicbrainzaskdialog.cpp \
+    settingsdialog.cpp \
     tasklib/syncurldownload.cpp \
     tasklib/taskrunner.cpp \
     tracklistmodel.cpp \
@@ -66,6 +67,7 @@ HEADERS  += mainwindow.h \
     libcdda/toc.h \
     musicbrainz/releasefinder.h \
     musicbrainzaskdialog.h \
+    settingsdialog.h \
     tasklib/syncurldownload.h \
     tasklib/taskrunner.h \
     tracklistmodel.h \
@@ -95,6 +97,7 @@ FORMS    += mainwindow.ui \
     extractparametersdialog.ui \
     musicbrainzaskdialog.ui \
     progressdialog.ui \
+    settingsdialog.ui \
     uiutil/extendederrordialog.ui
 
 RESOURCES += \

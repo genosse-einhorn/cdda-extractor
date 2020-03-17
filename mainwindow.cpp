@@ -9,6 +9,7 @@
 #include "uiutil/futureprogressdialog.h"
 #include "musicbrainzaskdialog.h"
 #include "extractor.h"
+#include "settingsdialog.h"
 
 #include <QMessageBox>
 #include <QMenu>
@@ -29,6 +30,11 @@ MainWindow::MainWindow(QWidget *parent) :
     menu->addAction(tr("Automatic Metadata Download..."), [=]() {
         MusicBrainzAskDialog::showAskDialog(this);
         this->reloadToc();
+    });
+    menu->addAction(tr("Advanced Settings"), [=]() {
+        SettingsDialog d(this);
+        d.setModal(true);
+        d.exec();
     });
     menu->addSeparator();
     menu->addAction(tr("About"));

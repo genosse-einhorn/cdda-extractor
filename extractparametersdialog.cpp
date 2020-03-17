@@ -30,16 +30,6 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
         ui->iwFolder->setIcon(QIcon(QStringLiteral(":/inode-directory.svg")));
 
 #ifdef Q_OS_WIN32
-    QIcon themeDrive = IconLoader::fromShellStock(SIID_DRIVECD);
-#else
-    QIcon themeDrive = QIcon::fromTheme(QStringLiteral("drive-optical"));
-#endif
-    if (!themeDrive.isNull())
-        ui->iwCd->setIcon(themeDrive);
-    else
-        ui->iwCd->setIcon(QIcon(QStringLiteral(":/drive-cdrom.svg")));
-
-#ifdef Q_OS_WIN32
     QIcon themeFormat = IconLoader::fromShellStock(SIID_AUDIOFILES);
 #else
     QIcon themeFormat = QIcon::fromTheme(QStringLiteral("audio-x-generic"));
@@ -50,7 +40,6 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
         ui->iwFileFormat->setIcon(QIcon(QStringLiteral(":/audio-x-generic.svg")));
 
     ui->iwFolder->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    ui->iwCd->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     ui->iwFileFormat->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     QSettings settings;
@@ -59,12 +48,7 @@ ExtractParametersDialog::ExtractParametersDialog(QWidget *parent) :
         ui->eOutputDirectory->setText(dir);
     }
     ui->cbCreateSubfolder->setChecked(settings.value(QStringLiteral("Create Subfolder"), bool(true)).toBool());
-    QString mode = settings.value(QStringLiteral("Paranoia Mode"), QStringLiteral("paranoia")).toString();
-    if (mode == QLatin1String("paranoia")) {
-        ui->rbParanoiaExtract->setChecked(true);
-    } else {
-        ui->rbFastExtract->setChecked(true);
-    }
+
     QString format = settings.value(QStringLiteral("Format"), QStringLiteral("flac")).toString();
     if (format == QLatin1String("flac")) {
         ui->rbFlac->setChecked(true);
@@ -108,7 +92,8 @@ QString ExtractParametersDialog::format() const
 
 bool ExtractParametersDialog::paranoiaActivated() const
 {
-    return ui->rbParanoiaExtract->isChecked();
+    QSettings settings;
+    return settings.value(QStringLiteral("Paranoia Mode"), QStringLiteral("paranoia")).toString() == QStringLiteral("paranoia");
 }
 
 void ExtractParametersDialog::on_bBrowseDir_clicked()
@@ -125,11 +110,6 @@ void ExtractParametersDialog::on_bStart_clicked()
     QSettings settings;
     settings.setValue(QStringLiteral("Output Directory"), ui->eOutputDirectory->text());
     settings.setValue(QStringLiteral("Create Subfolder"), ui->cbCreateSubfolder->isChecked());
-    if (ui->rbParanoiaExtract->isChecked()) {
-        settings.setValue(QStringLiteral("Paranoia Mode"), QStringLiteral("paranoia"));
-    } else {
-        settings.setValue(QStringLiteral("Paranoia Mode"), QStringLiteral("fast"));
-    }
     settings.setValue(QStringLiteral("Format"), format());
 
     accept();

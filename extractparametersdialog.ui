@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>599</width>
-    <height>504</height>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,81 +56,6 @@
       </item>
       <item row="0" column="0" rowspan="2">
        <widget class="IconWidget" name="iwFolder" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>48</width>
-          <height>48</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="title">
-      <string>CD Extraction</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="1">
-       <widget class="QRadioButton" name="rbParanoiaExtract">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="ClickableBuddyLabel" name="label_8">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>&lt;b&gt;&amp;Fast Mode&lt;/b&gt;&lt;br&gt;
-Trust the hardware to read data correctly, which almost all drives do.</string>
-        </property>
-        <property name="buddy">
-         <cstring>rbFastExtract</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="rbFastExtract">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="ClickableBuddyLabel" name="label_9">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>&lt;b&gt;&amp;Paranoia Mode&lt;/b&gt;&lt;br&gt;Perform extra error detection and correction. This is very slow.</string>
-        </property>
-        <property name="buddy">
-         <cstring>rbParanoiaExtract</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0" rowspan="2">
-       <widget class="IconWidget" name="iwCd" native="true">
         <property name="minimumSize">
          <size>
           <width>48</width>
@@ -296,8 +221,6 @@ Uncompressed file format without metadata. Not recommended.</string>
   <tabstop>eOutputDirectory</tabstop>
   <tabstop>bBrowseDir</tabstop>
   <tabstop>cbCreateSubfolder</tabstop>
-  <tabstop>rbFastExtract</tabstop>
-  <tabstop>rbParanoiaExtract</tabstop>
   <tabstop>rbFlac</tabstop>
   <tabstop>rbMp3</tabstop>
   <tabstop>rbWav</tabstop>
