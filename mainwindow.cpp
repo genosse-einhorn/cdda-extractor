@@ -27,10 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Generate extras menu
     QMenu *menu = new QMenu(this);
-    menu->addAction(tr("Automatic Metadata Download..."), [=]() {
-        MusicBrainzAskDialog::showAskDialog(this);
-        this->reloadToc();
-    });
+    menu->addAction(tr("Automatic Metadata Download Settings"), this, &MainWindow::changeMetadataSettingsClicked);
     menu->addAction(tr("Advanced Settings"), [=]() {
         SettingsDialog d(this);
         d.setModal(true);
@@ -286,6 +283,16 @@ void MainWindow::tableHeaderClicked(int logicalIndex)
         for (int i = 0; i < m_trackmodel->trackCount(); ++i) {
             m_trackmodel->setData(m_trackmodel->index(i, TrackListModel::COLUMN_TRACKNO), allChecked ? Qt::Unchecked : Qt::Checked, Qt::CheckStateRole);
         }
+    }
+}
+
+void MainWindow::changeMetadataSettingsClicked()
+{
+    if (MusicBrainzAskDialog::showAskDialog(this)) {
+        if (QMessageBox::question(this, tr("Refresh Required"),
+                                  tr("Do you want to download metadata now? Any metadata you may have already entered manually will be erased."),
+                                  tr("No"), tr("Refresh metadata now"), QString(), 1, 0))
+            this->reloadToc();
     }
 }
 

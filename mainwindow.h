@@ -32,6 +32,7 @@ private slots:
     void beginExtract();
 
     void tableHeaderClicked(int logicalIndex);
+    void changeMetadataSettingsClicked();
 
 private:
     Ui::MainWindow *ui;
