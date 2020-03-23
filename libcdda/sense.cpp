@@ -336,4 +336,18 @@ QString sense_to_string(const sense_data &sense)
     return QStringLiteral("Unknown SCSI sense: %1%2").arg(senseKeyStr, byte_buffer_to_hex_str((unsigned char*)&sense, sizeof(sense)));
 }
 
+result_sense sense_to_enum(const sense_data &sense)
+{
+    if (sense.senseKey == 0 || sense.senseKey == 1)
+        return RESULT_SENSE_OK;
+
+    if (sense.senseKey == 2 && sense.additionalSenseCode == 4)
+        return RESULT_SENSE_TEMPFAIL;
+
+    if (sense.senseKey == 2 && sense.additionalSenseCode == 0x3a)
+        return RESULT_SENSE_NOMEDIUM;
+
+    return RESULT_SENSE_FAIL;
+}
+
 } // namespace cdda

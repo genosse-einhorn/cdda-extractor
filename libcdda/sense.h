@@ -3,6 +3,8 @@
 
 #include <QString>
 
+#include "toc.h"
+
 namespace cdda {
 
 #pragma pack(push, 1)
@@ -26,6 +28,8 @@ struct sense_data {
 #pragma pack(pop)
 
 QString sense_to_string(const sense_data &sense);
+
+enum result_sense sense_to_enum(const sense_data &sense);
 
 } // namespace cdda
 

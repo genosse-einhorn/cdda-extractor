@@ -26,7 +26,7 @@ public:
 
 private slots:
     void reloadToc();
-    void tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, const MusicBrainz::ReleaseMetadata &release);
+    void tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, enum cdda::result_sense errorSense, const MusicBrainz::ReleaseMetadata &release);
 
     void resetUi();
     void beginExtract();

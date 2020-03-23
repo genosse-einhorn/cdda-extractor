@@ -129,12 +129,14 @@ bool drive_handle::exec_scsi_command(void *cmd, qint64 cmdlen, quint8 *bufp, qin
     if (ret < 0)
     {
         m_lastErr = os_error_to_str(errno);
+        m_lastSenseEnum = RESULT_SENSE_FAIL;
         return false;
     }
 
     if (hdr.status)
     {
         m_lastErr = QStringLiteral("SCSI Error: %2").arg(sense_to_string(sense));
+        m_lastSenseEnum = sense_to_enum(sense);
         return false;
     }
 
@@ -159,12 +161,14 @@ bool drive_handle::exec_scsi_command(void *cmd, qint64 cmdlen, quint8 *bufp, qin
     if (!ret)
     {
         m_lastErr = os_error_to_str(GetLastError());
+        m_lastSenseEnum = RESULT_SENSE_FAIL;
         return false;
     }
 
     if (s.s.ScsiStatus)
     {
         m_lastErr = QStringLiteral("SCSI Status %1 / Error: %2").arg(s.s.ScsiStatus).arg(sense_to_string(s.sense));
+        m_lastSenseEnum = sense_to_enum(s.sense);
         return false;
     }
 

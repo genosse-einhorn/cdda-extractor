@@ -15,6 +15,18 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="hlToolbar">
       <item>
@@ -106,176 +118,215 @@
      </layout>
     </item>
     <item>
-     <widget class="QWidget" name="metadataWidget" native="true">
-      <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,2,0,0,0,0">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item row="3" column="4">
-        <widget class="QLineEdit" name="eYear">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>Unknown Year</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2" colspan="5">
-        <widget class="QLineEdit" name="eComposer">
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>Unknown Composer</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="6">
-        <widget class="QLineEdit" name="eDiscNo">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2" colspan="5">
-        <widget class="QLineEdit" name="eTitle">
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>Unknown Title</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="ClickableBuddyLabel" name="lTitle">
-         <property name="text">
-          <string>&amp;Title</string>
-         </property>
-         <property name="buddy">
-          <cstring>eTitle</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2" colspan="5">
-        <widget class="QLineEdit" name="eArtist">
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>Unknown Artist</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QLineEdit" name="eGenre">
-         <property name="text">
-          <string>XXX</string>
-         </property>
-         <property name="placeholderText">
-          <string>Unknown Genre</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="ClickableBuddyLabel" name="lGenre">
-         <property name="text">
-          <string>&amp;Genre</string>
-         </property>
-         <property name="buddy">
-          <cstring>eGenre</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="ClickableBuddyLabel" name="lYear">
-         <property name="text">
-          <string>&amp;Year</string>
-         </property>
-         <property name="buddy">
-          <cstring>eYear</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="ClickableBuddyLabel" name="lArtist">
-         <property name="text">
-          <string>&amp;Artist</string>
-         </property>
-         <property name="buddy">
-          <cstring>eArtist</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="ClickableBuddyLabel" name="lComposer">
-         <property name="text">
-          <string>C&amp;omposer</string>
-         </property>
-         <property name="buddy">
-          <cstring>eComposer</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="5">
-        <widget class="ClickableBuddyLabel" name="lDiscNo">
-         <property name="text">
-          <string>&amp;CD</string>
-         </property>
-         <property name="buddy">
-          <cstring>eDiscNo</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" rowspan="4">
-        <widget class="CoverArtWidget" name="coverArt" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>150</width>
-           <height>150</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QTableView" name="tvTracks">
-      <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
-      </attribute>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
+      <widget class="QWidget" name="metadataPage">
+       <layout class="QVBoxLayout" name="verticalLayout1">
+        <item>
+         <widget class="QWidget" name="metadataWidget" native="true">
+          <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,2,0,0,0,0">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item row="3" column="4">
+            <widget class="QLineEdit" name="eYear">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>Unknown Year</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2" colspan="5">
+            <widget class="QLineEdit" name="eComposer">
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>Unknown Composer</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="6">
+            <widget class="QLineEdit" name="eDiscNo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2" colspan="5">
+            <widget class="QLineEdit" name="eTitle">
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>Unknown Title</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="ClickableBuddyLabel" name="lTitle">
+             <property name="text">
+              <string>&amp;Title</string>
+             </property>
+             <property name="buddy">
+              <cstring>eTitle</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2" colspan="5">
+            <widget class="QLineEdit" name="eArtist">
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>Unknown Artist</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QLineEdit" name="eGenre">
+             <property name="text">
+              <string>XXX</string>
+             </property>
+             <property name="placeholderText">
+              <string>Unknown Genre</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="ClickableBuddyLabel" name="lGenre">
+             <property name="text">
+              <string>&amp;Genre</string>
+             </property>
+             <property name="buddy">
+              <cstring>eGenre</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="ClickableBuddyLabel" name="lYear">
+             <property name="text">
+              <string>&amp;Year</string>
+             </property>
+             <property name="buddy">
+              <cstring>eYear</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="ClickableBuddyLabel" name="lArtist">
+             <property name="text">
+              <string>&amp;Artist</string>
+             </property>
+             <property name="buddy">
+              <cstring>eArtist</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="ClickableBuddyLabel" name="lComposer">
+             <property name="text">
+              <string>C&amp;omposer</string>
+             </property>
+             <property name="buddy">
+              <cstring>eComposer</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="5">
+            <widget class="ClickableBuddyLabel" name="lDiscNo">
+             <property name="text">
+              <string>&amp;CD</string>
+             </property>
+             <property name="buddy">
+              <cstring>eDiscNo</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" rowspan="4">
+            <widget class="CoverArtWidget" name="coverArt" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>150</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableView" name="tvTracks">
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="nocdPage">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>No Audio CD found :(</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="startPage">
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>CDDA-X</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>

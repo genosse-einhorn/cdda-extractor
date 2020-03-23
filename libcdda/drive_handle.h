@@ -25,6 +25,7 @@ private:
 #endif
     QString m_deviceName;
     QString m_lastErr;
+    enum result_sense m_lastSenseEnum { RESULT_SENSE_OK };
 
     void cleanup();    
 
@@ -59,6 +60,7 @@ public:
     bool ok() const;
     explicit operator bool() const { return ok(); }
     QString last_error() const { return m_lastErr; }
+    enum result_sense last_sense_code() const { return m_lastSenseEnum; }
     QString device_name() const { return m_deviceName; }
 
     // finding drives

@@ -21,9 +21,7 @@ struct toc_find_result {
     cdda::toc toc;
 };
 
-cdda::toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::CancelToken &cancelToken);
-
-QFuture<toc_find_result> find_toc_threaded(void);
+cdda::toc find_toc(QString *out_device, QStringList *out_log, enum result_sense *out_sense, const TaskRunner::CancelToken &cancelToken);
 
 } // namespace cdda
 

@@ -135,7 +135,8 @@ void MainWindow::reloadToc()
 
         QStringList errorLog;
         QString device;
-        cdda::toc toc = cdda::find_toc(&device, &errorLog, cancelToken);
+        enum cdda::result_sense errorSense = cdda::RESULT_SENSE_OK;
+        cdda::toc toc = cdda::find_toc(&device, &errorLog, &errorSense, cancelToken);
 
         MusicBrainz::ReleaseMetadata release;
 
@@ -146,7 +147,7 @@ void MainWindow::reloadToc()
                                                cancelToken);
         }
 
-        return std::make_tuple(toc, device, errorLog, release);
+        return std::make_tuple(toc, device, errorLog, errorSense, release);
     });
 
     m_progressDialog->setFuture(future);
@@ -154,18 +155,18 @@ void MainWindow::reloadToc()
     TaskRunner::handle_result_tuple_unpack(future, this, &MainWindow::tocLoaded);
 }
 
-void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, const MusicBrainz::ReleaseMetadata &release)
+void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, cdda::result_sense errorSense, const MusicBrainz::ReleaseMetadata &release)
 {
     if (toc.is_valid())
     {
+        ui->stackedWidget->setCurrentWidget(ui->metadataPage);
+        ui->tbExtract->setEnabled(true);
+
         ui->eArtist->setText(toc.artist);
         ui->eTitle->setText(toc.title);
 
         m_trackmodel->reset(toc.tracks);
         m_trackmodel->setDevice(device);
-        ui->tvTracks->setEnabled(true);
-        ui->metadataWidget->setEnabled(true);
-        ui->tbExtract->setEnabled(true);
 
         if (release.artist.size())
             ui->eArtist->setText(release.artist);
@@ -206,9 +207,12 @@ void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QS
     }
     else
     {
-        ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD.\n\n"
-                                           "Make sure an audio CD is inserted into the drive."),
-                                  errorLog.join(QStringLiteral("\n")));
+        if (errorSense == cdda::RESULT_SENSE_NOMEDIUM) {
+            ui->stackedWidget->setCurrentWidget(ui->nocdPage);
+        } else {
+            ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD"),
+                                       errorLog.join(QStringLiteral("\n")));
+        }
     }
 }
 
@@ -224,10 +228,9 @@ void MainWindow::resetUi()
     ui->eDiscNo->clear();
     ui->coverArt->resetCover();
 
-    ui->tvTracks->setEnabled(false);
-    ui->metadataWidget->setEnabled(false);
     ui->tbExtract->setEnabled(false);
 
+    ui->stackedWidget->setCurrentWidget(ui->startPage);
 }
 
 void MainWindow::beginExtract()

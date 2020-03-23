@@ -7,6 +7,13 @@
 
 namespace cdda {
 
+enum result_sense {
+    RESULT_SENSE_OK,
+    RESULT_SENSE_NOMEDIUM,
+    RESULT_SENSE_TEMPFAIL,
+    RESULT_SENSE_FAIL
+};
+
 struct block_addr_delta {
     int delta_blocks;
 

@@ -9,12 +9,14 @@
 
 namespace cdda {
 
-toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::CancelToken &cancelToken)
+toc find_toc(QString *out_device, QStringList *out_log, result_sense *out_sense, const TaskRunner::CancelToken &cancelToken)
 {
     QStringList drives = cdda::drive_handle::list_drives();
 
-    if (!drives.size())
+    if (!drives.size()) {
         *out_log << toc_finder::tr("No CD drives found :(");
+        *out_sense = RESULT_SENSE_FAIL;
+    }
 
     for (QString drive : drives)
     {
@@ -27,6 +29,7 @@ toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::Cancel
         if (!h.ok())
         {
             *out_log << toc_finder::tr("Could not open %1: %2").arg(drive).arg(h.last_error());
+            *out_sense = h.last_sense_code();
             continue;
         }
 
@@ -37,6 +40,7 @@ toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::Cancel
         if (!toc.is_valid())
         {
             *out_log << toc_finder::tr("Could not read TOC from %1: %2").arg(drive).arg(h.last_error());
+            *out_sense = h.last_sense_code();
             continue;
         }
 
@@ -44,6 +48,7 @@ toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::Cancel
         if (audio == toc.tracks.cend())
         {
             *out_log << toc_finder::tr("CD in %1 does not contain any audio tracks.").arg(drive);
+            *out_sense = RESULT_SENSE_NOMEDIUM;
             continue;
         }
 
@@ -88,17 +93,6 @@ toc find_toc(QString *out_device, QStringList *out_log, const TaskRunner::Cancel
     }
 
     return cdda::toc();
-}
-
-QFuture<toc_find_result> find_toc_threaded()
-{
-    return TaskRunner::run([](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken&){
-        cdda::toc_find_result result;
-
-        result.toc = find_toc(&result.device, &result.log, cancelToken);
-
-        return result;
-    });
 }
 
 
