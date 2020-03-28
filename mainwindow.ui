@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Genosse Einhorn’s CD Audio Extractor</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="data/data.qrc">
+    <normaloff>:/logo.svg</normaloff>:/logo.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="leftMargin">
@@ -120,7 +124,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="metadataPage">
        <layout class="QVBoxLayout" name="verticalLayout1">
@@ -300,8 +304,20 @@
        </layout>
       </widget>
       <widget class="QWidget" name="nocdPage">
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
+       <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0">
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
+        <property name="topMargin">
+         <number>20</number>
+        </property>
+        <property name="rightMargin">
+         <number>20</number>
+        </property>
+        <property name="bottomMargin">
+         <number>20</number>
+        </property>
+        <item row="1" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
            <string>No Audio CD found :(</string>
@@ -309,19 +325,43 @@
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
+          <property name="margin">
+           <number>30</number>
+          </property>
          </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="IconWidget" name="iwNoCdLogo" native="true"/>
         </item>
        </layout>
       </widget>
       <widget class="QWidget" name="startPage">
-       <layout class="QGridLayout" name="gridLayout_3">
+       <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,0">
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
+        <property name="topMargin">
+         <number>20</number>
+        </property>
+        <property name="rightMargin">
+         <number>20</number>
+        </property>
+        <property name="bottomMargin">
+         <number>20</number>
+        </property>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_2">
+         <widget class="IconWidget" name="iwStartLogo" native="true"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="lStartProgramName">
           <property name="text">
            <string>CDDA-X</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+          <property name="margin">
+           <number>30</number>
           </property>
          </widget>
         </item>
@@ -357,6 +397,12 @@
    <class>CoverArtWidget</class>
    <extends>QWidget</extends>
    <header>coverartwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IconWidget</class>
+   <extends>QWidget</extends>
+   <header>uiutil/iconwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

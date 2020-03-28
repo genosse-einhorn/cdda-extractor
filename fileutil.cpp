@@ -3,6 +3,7 @@
 #include "libcdda/os_util.h"
 
 #include <QFile>
+#include <QDir>
 
 #ifdef Q_OS_WIN32
 #   include <windows.h>

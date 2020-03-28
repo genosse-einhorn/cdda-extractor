@@ -116,3 +116,5 @@ packagesExist(flac) {
     # link to it anyway
     LIBS += -lFLAC
 }
+
+RC_ICONS = data/logo.ico
