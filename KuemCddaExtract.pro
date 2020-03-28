@@ -96,9 +96,9 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     extractparametersdialog.ui \
     musicbrainzaskdialog.ui \
-    progressdialog.ui \
     settingsdialog.ui \
-    uiutil/extendederrordialog.ui
+    uiutil/extendederrordialog.ui \
+    uiutil/progressdialog.ui
 
 RESOURCES += \
     data/data.qrc
