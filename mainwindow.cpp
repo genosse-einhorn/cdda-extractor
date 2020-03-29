@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
         d.exec();
     });
     menu->addSeparator();
-    menu->addAction(tr("About"));
+    menu->addAction(tr("About"), this, &MainWindow::showAboutDialog);
     menu->addAction(tr("About Qt"), [=]() { QMessageBox::aboutQt(this); });
 
 
@@ -291,6 +291,35 @@ void MainWindow::changeMetadataSettingsClicked()
                                   tr("No"), tr("Refresh metadata now"), QString(), 1, 0))
             this->reloadToc();
     }
+}
+
+void MainWindow::showAboutDialog()
+{
+    QMessageBox::about(this, tr("About"), tr(
+                           "%1 %2<br>"
+                           "Copyright © 2020 Jonas Kümmerlin &lt;jonas@kuemmerlin.eu&gt;<br>"
+                           "<br>"
+                           "Includes code from <a href=\"https://www.xiph.org/paranoia/\">cdparanoia</a>, "
+                           "Copyright © Monty (xiphmont@mit.edu)<br>"
+                           "<br>"
+                           "Uses <a href=\"https://lame.sourceforge.io/\">libmp3lame</a>, "
+                           "<a href=\"https://xiph.org/flac/\">libFLAC</a>, and "
+                           "<a href=\"https://www.qt.io/\">Qt5</a><br>"
+                           "<br>"
+                           "This program is free software: you can redistribute it and/or modify "
+                           "it under the terms of the GNU General Public License as published by "
+                           "the Free Software Foundation, either version 3 of the License, or "
+                           "(at your option) any later version.<br>"
+                           "<br>"
+                           "This program is distributed in the hope that it will be useful, "
+                           "but WITHOUT ANY WARRANTY; without even the implied warranty of "
+                           "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "
+                           "GNU General Public License for more details.<br>"
+                           "<br>"
+                           "You should have received a copy of the GNU General Public License "
+                           "along with this program.  If not, see "
+                           "<a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>."
+                           ).arg(qApp->applicationDisplayName()).arg(qApp->applicationVersion()));
 }
 
 

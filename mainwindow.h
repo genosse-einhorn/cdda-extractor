@@ -34,6 +34,8 @@ private slots:
     void tableHeaderClicked(int logicalIndex);
     void changeMetadataSettingsClicked();
 
+    void showAboutDialog();
+
 private:
     Ui::MainWindow *ui;
 
