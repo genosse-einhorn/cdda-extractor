@@ -7,9 +7,13 @@
 #include "encoder/lameencoder.h"
 #include "encoder/wavencoder.h"
 #include "fileutil.h"
+#include "ringbuffer.h"
+#include "encoderwriter.h"
 
 #include <QFile>
 #include <QDir>
+#include <QElapsedTimer>
+#include <QDebug>
 
 namespace {
 
@@ -30,7 +34,7 @@ private:
     cdda::drive_handle &m_handle;
     cdda::block_addr m_pos;
     cdda::block_addr_delta m_remaining;
-    qint16 m_buffer[588*2*20]; // FIXME: why 20 blocks?
+    qint16 m_buffer[588*2*25];
 
 public:
     RawReader(cdda::drive_handle &handle, cdda::block_addr start, cdda::block_addr_delta len, const TaskRunner::CancelToken &cancelToken)
@@ -98,7 +102,7 @@ public:
     {
         m_paranoiaHandle = paranoia_init(&ParanoiaReader::paranoiaReadfunc,
                                          this,
-                                         10, // FIXME: Why? It works, but I'd like to know why higher values don't work
+                                         25,
                                          start.block, (start+len).block - 1); // FIXME! should use first and last sector of whole disc
         paranoia_modeset(m_paranoiaHandle, PARANOIA_MODE_FULL^PARANOIA_MODE_NEVERSKIP);
         paranoia_set_range(m_paranoiaHandle, start.block, (start+len).block - 1);
@@ -154,88 +158,40 @@ QString extractTrack(cdda::drive_handle &handle,
     else
         reader.reset(new RawReader(handle, track.start, track.length, cancelToken));
 
-    // create directories
-    if (!QDir(outdir).mkpath(QStringLiteral(".")))
-        return Extractor::tr("Could not create directory %1").arg(outdir);
-
-
-    // create file without overwriting files already there
-    QString basename = FileUtil::sanitizeFilename(QStringLiteral("%1 - %2")
-            .arg(track.metadata.trackno, 2, 10, QLatin1Char('0'))
-            .arg(track.metadata.title.size() ? track.metadata.title : QStringLiteral("Track %1").arg(track.metadata.trackno)));
-
-    QString filename = QStringLiteral("%1/%2.%3").arg(outdir, basename, format);
-
-    QString error;
-    std::unique_ptr<QIODevice> device(FileUtil::createFileExclusive(filename, &error));
-    unsigned c = 0;
-    while (!device.get() && !error.size())
-    {
-        // file exists - try next one
-        ++c;
-        filename = QStringLiteral("%1/%2 (%4).%3").arg(outdir, basename, format).arg(c);
-        device.reset(FileUtil::createFileExclusive(filename, &error));
-    }
-
-    if (!device.get())
-        return Extractor::tr("Could not create file %1: %2").arg(filename, error);
-
-    // create encoder instance
-    std::unique_ptr<Encoder::AbstractEncoder> encoder;
-
-    if (format == QLatin1Literal("flac"))
-        encoder.reset(new Encoder::FlacEncoder());
-    else if (format == QLatin1Literal("mp3"))
-        encoder.reset(new Encoder::LameEncoder());
-    else
-        encoder.reset(new Encoder::WavEncoder());
-
     // initialize encoder
-    if (!encoder->initialize(device.get(), track.length.delta_blocks*588, track.metadata))
-        return Extractor::tr("Failed to initialize encoder: %1").arg(encoder->errorText());
+    Ringbuffer rb(100);
+    QFuture<QString> encoderFuture = EncoderWriter::encodeAndWrite(outdir, format, track.length, track.metadata, &rb);
+    TaskRunner::FutureFinishWaiter waiter(encoderFuture);
 
     // now extract data
     cdda::block_addr_delta processed_blocks { 0 };
-
-    // really simple pre-gap detection: chop off silence from the end
-    qint64 trailingSilentSamples = 0;
 
     // loop for reading and encoding audio data
     while (!reader->eof())
     {
         qint16 *buf;
         cdda::block_addr_delta buflen { 0 };
-        if (!reader->read(&buf, &buflen))
+        if (!reader->read(&buf, &buflen)) {
+            encoderFuture.cancel();
             return Extractor::tr("Failed to read from CD: %1").arg(reader->errorMessage());
-
-        // pre-gap detection
-        qint64 samples = 588*buflen.delta_blocks;
-        qint64 silentSamplesThisBuf = 0;
-        while (samples > 0 && !buf[2*samples-1] && !buf[2*samples-2])
-        {
-            samples--;
-            silentSamplesThisBuf++;
         }
 
-        if (samples)
-        {
-            // write buffered silent samples
-            while (trailingSilentSamples > 0)
-            {
-                qint16 silentBuf[200] = {};
-                qint64 n = std::min(trailingSilentSamples, qint64(sizeof(silentBuf)/sizeof(silentBuf[0]))/2);
-                if (!encoder->feed(silentBuf, n))
-                    return Extractor::tr("Failed while encoding audio: %1").arg(encoder->errorText());
+        // write to ringbuffer
+        for (int i = 0; i < buflen.delta_blocks; ++i) {
+            qint16 *t = nullptr;
 
-                trailingSilentSamples -= n;
+            while (!t) {
+                t = rb.tryBeginWriteBlock(10000);
+                if (encoderFuture.isFinished()) {
+                    // encoder failed!
+                    return encoderFuture.result();
+                }
             }
 
-            // encode it
-            if (!encoder->feed(buf, samples))
-                return Extractor::tr("Failed while encoding audio: %1").arg(encoder->errorText());
-        }
+            memcpy(t, &buf[588*2*i], 2352);
 
-        trailingSilentSamples += silentSamplesThisBuf;
+            rb.endWriteBlock();
+        }
 
         processed_blocks += buflen;
         progressToken.reportProgressValueAndText(progressToken.progressValue() + buflen.delta_blocks,
@@ -244,11 +200,7 @@ QString extractTrack(cdda::drive_handle &handle,
                                                              .arg(processed_blocks.to_display()));
     }
 
-    // finalize encoding
-    if (!encoder->finish())
-        return Extractor::tr("Failed to finalize encoding: %1").arg(encoder->errorText());
-
-    return QString();
+    return encoderFuture.result();
 }
 
 } // anonymous namespace
@@ -274,11 +226,20 @@ QFuture<QString> Extractor::extract(const QString &device, const QString &outdir
         }
 
         // extract tracks
+        QElapsedTimer tTotal;
+        tTotal.start();
         for (const auto &track : tracks) {
+            QElapsedTimer t;
+            t.start();
+
             QString e = extractTrack(handle, track, outdir, format, cancelToken, progressToken, mode);
             if (e.length())
                 return e;
+
+            qDebug() << "Extracting track" << track.metadata.trackno << "took" << t.elapsed() << "ms";
         }
+
+        qDebug() << "Whole extraction took" << tTotal.elapsed() << "ms";
 
         return QString();
     });

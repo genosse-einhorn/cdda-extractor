@@ -208,6 +208,15 @@ void handle_result_tuple_unpack(const QFuture<std::tuple<TArgs...>> &future, TSc
     watcher->setFuture(future);
 }
 
+class FutureFinishWaiter {
+    QFuture<void> m_future;
+
+public:
+    template<typename T>
+    FutureFinishWaiter(const QFuture<T> &future) : m_future(QFuture<void>(future)) {}
+    ~FutureFinishWaiter() { m_future.waitForFinished(); }
+};
+
 } // namespace TaskRunner
 
 #endif // TASKRUNNER_H

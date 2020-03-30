@@ -27,6 +27,7 @@ msvc {
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 SOURCES += main.cpp\
+    encoderwriter.cpp \
     extractor.cpp \
     fileutil.cpp \
         mainwindow.cpp \
@@ -34,6 +35,7 @@ SOURCES += main.cpp\
     libcdda/toc.cpp \
     musicbrainz/releasefinder.cpp \
     musicbrainzaskdialog.cpp \
+    ringbuffer.cpp \
     settingsdialog.cpp \
     tasklib/syncurldownload.cpp \
     tasklib/taskrunner.cpp \
@@ -61,12 +63,14 @@ SOURCES += main.cpp\
     uiutil/win32iconloader.cpp
 
 HEADERS  += mainwindow.h \
+    encoderwriter.h \
     extractor.h \
     fileutil.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     musicbrainz/releasefinder.h \
     musicbrainzaskdialog.h \
+    ringbuffer.h \
     settingsdialog.h \
     tasklib/syncurldownload.h \
     tasklib/taskrunner.h \

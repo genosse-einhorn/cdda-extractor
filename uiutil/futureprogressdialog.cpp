@@ -13,5 +13,8 @@ FutureProgressDialog::FutureProgressDialog(QWidget *parent) : ProgressDialog(par
 void FutureProgressDialog::setFuture(const QFuture<void> &future)
 {
     this->uncancel();
+    setRange(0, 0);
+    setValue(0);
+    setLabelText(QString());
     m_watcher.setFuture(future);
 }
