@@ -7,7 +7,7 @@
 QT       += core gui concurrent widgets svg network
 win32: QT += winextras
 
-TARGET = KuemCddaExtract
+TARGET = CddaX
 TEMPLATE = app
 
 CONFIG += link_pkgconfig c++11

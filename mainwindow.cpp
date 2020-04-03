@@ -310,6 +310,7 @@ void MainWindow::changeMetadataSettingsClicked()
 void MainWindow::showAboutDialog()
 {
     QMessageBox::about(this, tr("About"), tr(
+                           "Genosse Einhorn’s CD Audio Extractor<br>"
                            "%1 %2<br>"
                            "Copyright © 2020 Jonas Kümmerlin &lt;jonas@kuemmerlin.eu&gt;<br>"
                            "<br>"
