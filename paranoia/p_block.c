@@ -1,3 +1,8 @@
+/***
+ * CopyPolicy: GNU Lesser General Public License 2.1 applies
+ * Copyright (C) by Monty (xiphmont@mit.edu)
+ ***/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
