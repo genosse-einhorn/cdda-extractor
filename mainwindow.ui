@@ -54,12 +54,29 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="spacer" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <widget class="QToolButton" name="tbLoadMetadata">
+        <property name="toolTip">
+         <string>Load Metadata from the Internet using the MusicBrainz Service</string>
+        </property>
+        <property name="text">
+         <string>MusicBrainz</string>
+        </property>
+        <property name="icon">
+         <iconset resource="data/data.qrc">
+          <normaloff>:/musicbrainz.svg</normaloff>:/musicbrainz.svg</iconset>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
@@ -124,7 +141,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="metadataPage">
        <layout class="QVBoxLayout" name="verticalLayout1">

@@ -436,6 +436,32 @@ QFuture<ReleaseMetadata> findReleaseOnThread(const QString &discid, const QStrin
     });
 }
 
+QString buildTocAttachUrl(const cdda::toc &toc)
+{
+    QString discid = cdda::calculate_musicbrainz_discid(toc);
+
+    std::vector<cdda::toc_track> tracks;
+    if (toc.tracks[0].index == 0) {
+        // musicbrainz does not count the hidden track
+        std::copy_if(toc.tracks.begin() + 1, toc.tracks.end(), std::back_inserter(tracks), [](const cdda::toc_track &t) { return t.is_audio();});
+    } else {
+        std::copy_if(toc.tracks.begin(), toc.tracks.end(), std::back_inserter(tracks), [](const cdda::toc_track &t) { return t.is_audio();});
+    }
+
+    QStringList tocSpec;
+    tocSpec << QString::number(tracks[0].index);
+    tocSpec << QString::number(tracks.size());
+    tocSpec << QString::number((tracks[tracks.size()-1].start + tracks[tracks.size()-1].length).block + 150);
+    for (const cdda::toc_track &track: tracks) {
+        tocSpec << QString::number(track.start.block + 150);
+    }
+
+    return QStringLiteral("https://musicbrainz.org/cdtoc/attach?id=%1&tracks=%2&toc=%3")
+            .arg(discid)
+            .arg(tracks.size())
+            .arg(tocSpec.join(QLatin1Char('+')));
+}
+
 
 
 } // namespace MusicBrainz

@@ -34,7 +34,7 @@ SOURCES += main.cpp\
     libcdda/drive_handle.cpp \
     libcdda/toc.cpp \
     musicbrainz/releasefinder.cpp \
-    musicbrainzaskdialog.cpp \
+    musicbrainzprivacyinfodialog.cpp \
     ringbuffer.cpp \
     settingsdialog.cpp \
     tasklib/syncurldownload.cpp \
@@ -69,7 +69,7 @@ HEADERS  += mainwindow.h \
     libcdda/drive_handle.h \
     libcdda/toc.h \
     musicbrainz/releasefinder.h \
-    musicbrainzaskdialog.h \
+    musicbrainzprivacyinfodialog.h \
     ringbuffer.h \
     settingsdialog.h \
     tasklib/syncurldownload.h \
@@ -99,7 +99,7 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui \
     extractparametersdialog.ui \
-    musicbrainzaskdialog.ui \
+    musicbrainzprivacyinfodialog.ui \
     settingsdialog.ui \
     uiutil/extendederrordialog.ui \
     uiutil/progressdialog.ui

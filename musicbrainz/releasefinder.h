@@ -16,6 +16,7 @@
 #define MUSICBRAINZ_RELEASEFINDER2_H
 
 #include "../tasklib/taskrunner.h"
+#include "../libcdda/toc.h"
 
 #include <QImage>
 #include <vector>
@@ -43,6 +44,8 @@ struct ReleaseMetadata {
 ReleaseMetadata findRelease(const QString &discid, const QString &mcn, const TaskRunner::CancelToken &cancelToken);
 
 QFuture<ReleaseMetadata> findReleaseOnThread(const QString &discid, const QString &mcn);
+
+QString buildTocAttachUrl(const cdda::toc &toc);
 
 } // namespace MusicBrainz
 

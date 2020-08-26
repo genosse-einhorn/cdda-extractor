@@ -18,20 +18,19 @@
 #include <QDialog>
 
 namespace Ui {
-class MusicBrainzAskDialog;
+class MusicBrainzPrivacyInfoDialog;
 }
 
-class MusicBrainzAskDialog : public QDialog
+class MusicBrainzPrivacyInfoDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit MusicBrainzAskDialog(QWidget *parent = nullptr);
-    ~MusicBrainzAskDialog();
+    explicit MusicBrainzPrivacyInfoDialog(QWidget *parent = nullptr);
+    ~MusicBrainzPrivacyInfoDialog();
 
-    static bool showAskDialog(QWidget *owner);
-    static bool downloadOkMaybeAsk(QWidget *parentWindow);
-    static bool downloadOk(void);
+    static bool showInfoDialog(QWidget *owner);
+    static bool maybeShowInfoDialog(QWidget *parentWindow);
 
 private slots:
     void on_yesBtn_clicked();
@@ -39,7 +38,7 @@ private slots:
     void on_noBtn_clicked();
 
 private:
-    Ui::MusicBrainzAskDialog *ui;
+    Ui::MusicBrainzPrivacyInfoDialog *ui;
 };
 
 #endif // MUSICBRAINZASKDIALOG_H

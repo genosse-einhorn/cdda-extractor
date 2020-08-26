@@ -322,6 +322,11 @@ void TrackListModel::setAlbumCover(const QImage &image)
     image.save(&buffer, "PNG");
 }
 
+void TrackListModel::setAlbumCatalogNo(const QString &no)
+{
+    m_albumCatalogNo = no;
+}
+
 QString TrackListModel::trackISRC(int i) const
 {
     return m_data[i].tocdata.isrc;
@@ -410,4 +415,18 @@ void TrackListModel::setTrackComposer(int i, const QString &composer)
 
     auto modelIndex = createIndex(i, COLUMN_COMPOSER);
     emit dataChanged(modelIndex, modelIndex);
+}
+
+QString TrackListModel::musicbrainzDiscId() const
+{
+    return cdda::calculate_musicbrainz_discid(toc());
+}
+
+cdda::toc TrackListModel::toc() const
+{
+    cdda::toc toc;
+    for (auto t: m_data) {
+        toc.tracks.push_back(t.tocdata);
+    }
+    return toc;
 }

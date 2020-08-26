@@ -40,13 +40,16 @@ public:
 
 private slots:
     void reloadToc();
-    void tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, enum cdda::result_sense errorSense, const MusicBrainz::ReleaseMetadata &release);
+    void tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, enum cdda::result_sense errorSense);
+
+    void loadMetadata();
+    void metadataLoaded(const MusicBrainz::ReleaseMetadata& metadata);
 
     void resetUi();
     void beginExtract();
 
     void tableHeaderClicked(int logicalIndex);
-    void changeMetadataSettingsClicked();
+    void showMusicBrainzPrivacyPolicyClicked();
 
     void showAboutDialog();
 

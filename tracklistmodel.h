@@ -70,6 +70,7 @@ public:
     void setAlbumYear(const QString &year);
     void setAlbumDiscNo(const QString &no);
     void setAlbumCover(const QImage &image);
+    void setAlbumCatalogNo(const QString &no);
 
     QString albumArtist() const { return m_albumArtist.size() ? m_albumArtist : tr("Unknown Artist"); }
     QString albumComposer() const { return m_albumComposer.size() ? m_albumComposer : tr("Unknown Composer"); }
@@ -77,6 +78,7 @@ public:
     QString albumGenre() const { return m_albumGenre.size() ? m_albumGenre : tr("Unknown Genre"); }
     QString albumYear() const { return m_albumYear; }
     QString albumDiscNo() const { return m_albumDiscNo; }
+    QString albumCatalogNo() const { return m_albumCatalogNo; }
 
     int trackCount() const { return (int)m_data.size(); }
     int trackNo(int i) const { return m_data[i].trackno; }
@@ -94,6 +96,9 @@ public:
     void setTrackTitle(int i, const QString &title);
     void setTrackArtist(int i, const QString &artist);
     void setTrackComposer(int i, const QString &composer);
+
+    QString musicbrainzDiscId() const;
+    cdda::toc toc() const;
 
 private:
 
@@ -118,6 +123,7 @@ private:
     QString m_albumGenre;
     QString m_albumYear;
     QString m_albumDiscNo;
+    QString m_albumCatalogNo;
 
     QImage m_albumCover;
     QByteArray m_albumCoverPng;

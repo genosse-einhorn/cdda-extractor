@@ -21,7 +21,7 @@
 #include "uiutil/extendederrordialog.h"
 #include "extractparametersdialog.h"
 #include "uiutil/futureprogressdialog.h"
-#include "musicbrainzaskdialog.h"
+#include "musicbrainzprivacyinfodialog.h"
 #include "extractor.h"
 #include "settingsdialog.h"
 
@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Generate extras menu
     QMenu *menu = new QMenu(this);
-    menu->addAction(tr("Automatic Metadata Download Settings"), this, &MainWindow::changeMetadataSettingsClicked);
+    menu->addAction(tr("MusicBrainz Privacy Info"), this, &MainWindow::showMusicBrainzPrivacyPolicyClicked);
     menu->addAction(tr("Advanced Settings"), [=]() {
         SettingsDialog d(this);
         d.setModal(true);
@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->tbRefresh, &QAbstractButton::clicked, this, &MainWindow::reloadToc);
     connect(ui->tbExtract, &QAbstractButton::clicked, this, &MainWindow::beginExtract);
+    connect(ui->tbLoadMetadata, &QAbstractButton::clicked, this, &MainWindow::loadMetadata);
 
     // Enlarge "Extract" button
     auto font = ui->tbExtract->font();
@@ -132,10 +133,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::reloadToc()
 {
-    resetUi();
-
-    bool musicbrainzOk = MusicBrainzAskDialog::downloadOkMaybeAsk(this);
-
     m_progressDialog->setWindowTitle(tr("Loading Table of Contents..."));
 
     auto future = TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &progressToken) {
@@ -146,16 +143,7 @@ void MainWindow::reloadToc()
         enum cdda::result_sense errorSense = cdda::RESULT_SENSE_OK;
         cdda::toc toc = cdda::find_toc(&device, &errorLog, &errorSense, cancelToken);
 
-        MusicBrainz::ReleaseMetadata release;
-
-        if (toc.is_valid() && !cancelToken.isCanceled() && musicbrainzOk) {
-            progressToken.reportProgressValueAndText(2, tr("Searching for metadata..."));
-            release = MusicBrainz::findRelease(cdda::calculate_musicbrainz_discid(toc),
-                                               toc.catalog,
-                                               cancelToken);
-        }
-
-        return std::make_tuple(toc, device, errorLog, errorSense, release);
+        return std::make_tuple(toc, device, errorLog, errorSense);
     });
 
     m_progressDialog->setFuture(future);
@@ -163,19 +151,70 @@ void MainWindow::reloadToc()
     TaskRunner::handle_result_tuple_unpack(future, this, &MainWindow::tocLoaded);
 }
 
-void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, cdda::result_sense errorSense, const MusicBrainz::ReleaseMetadata &release)
+void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QStringList &errorLog, cdda::result_sense errorSense)
 {
     if (toc.is_valid())
     {
         ui->stackedWidget->setCurrentWidget(ui->metadataPage);
         ui->tbExtract->setEnabled(true);
-
-        ui->eArtist->setText(toc.artist);
-        ui->eTitle->setText(toc.title);
-
-        m_trackmodel->reset(toc.tracks);
+        ui->tbLoadMetadata->setEnabled(true);
         m_trackmodel->setDevice(device);
 
+        if (cdda::calculate_musicbrainz_discid(toc) != m_trackmodel->musicbrainzDiscId()) {
+            // only override data when a new disc has been inserted
+            ui->eArtist->setText(toc.artist);
+            ui->eTitle->setText(toc.title);
+            ui->eComposer->clear();
+            ui->eGenre->clear();
+            ui->eYear->clear();
+            ui->eDiscNo->clear();
+            ui->coverArt->resetCover();
+
+            m_trackmodel->reset(toc.tracks);
+            m_trackmodel->setAlbumCatalogNo(toc.catalog);
+        }
+    }
+    else
+    {
+        if (errorSense == cdda::RESULT_SENSE_NOMEDIUM) {
+            resetUi();
+            ui->stackedWidget->setCurrentWidget(ui->nocdPage);
+        } else {
+            ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD"),
+                                       errorLog.join(QStringLiteral("\n")));
+        }
+    }
+}
+
+void MainWindow::loadMetadata()
+{
+    // inform the user about privacy implications
+    if (!MusicBrainzPrivacyInfoDialog::maybeShowInfoDialog(this))
+        return;
+
+    // load data from musicbrainz
+    if (m_trackmodel->trackCount() < 1)
+        return;
+
+    QString discid = m_trackmodel->musicbrainzDiscId();
+    QString catalog = m_trackmodel->albumCatalogNo();
+
+    auto future = TaskRunner::run([=](const TaskRunner::CancelToken &cancelToken, const TaskRunner::ProgressToken &progressToken) {
+        progressToken.reportProgressValueAndText(1, tr("Loading Metadata from MusicBrainz..."));
+
+        return MusicBrainz::findRelease(discid, catalog, cancelToken);
+    });
+
+    m_progressDialog->setFuture(future);
+    TaskRunner::handle_result(future, this, &MainWindow::metadataLoaded);
+
+
+}
+
+void MainWindow::metadataLoaded(const MusicBrainz::ReleaseMetadata &release)
+{
+    // if found: apply data
+    if (release.releaseId.size()) {
         if (release.artist.size())
             ui->eArtist->setText(release.artist);
 
@@ -212,15 +251,11 @@ void MainWindow::tocLoaded(const cdda::toc &toc, const QString &device, const QS
             if (track.composer.size())
                 m_trackmodel->setTrackComposer(i, track.composer);
         }
-    }
-    else
-    {
-        if (errorSense == cdda::RESULT_SENSE_NOMEDIUM) {
-            ui->stackedWidget->setCurrentWidget(ui->nocdPage);
-        } else {
-            ExtendedErrorDialog::show(this, tr("Failed to load the table of contents from the CD"),
-                                       errorLog.join(QStringLiteral("\n")));
-        }
+    } else {
+        QMessageBox::critical(this,
+                              tr("Metadata not found"),
+                              tr("The CD you inserted was not found in the MusicBrainz database. <a href=\"%1\">Add it yourself</a>")
+                                    .arg(MusicBrainz::buildTocAttachUrl(m_trackmodel->toc())));
     }
 }
 
@@ -237,6 +272,7 @@ void MainWindow::resetUi()
     ui->coverArt->resetCover();
 
     ui->tbExtract->setEnabled(false);
+    ui->tbLoadMetadata->setEnabled(false);
 
     ui->stackedWidget->setCurrentWidget(ui->startPage);
 }
@@ -297,14 +333,9 @@ void MainWindow::tableHeaderClicked(int logicalIndex)
     }
 }
 
-void MainWindow::changeMetadataSettingsClicked()
+void MainWindow::showMusicBrainzPrivacyPolicyClicked()
 {
-    if (MusicBrainzAskDialog::showAskDialog(this)) {
-        if (QMessageBox::question(this, tr("Refresh Required"),
-                                  tr("Do you want to download metadata now? Any metadata you may have already entered manually will be erased."),
-                                  tr("No"), tr("Refresh metadata now"), QString(), 1, 0))
-            this->reloadToc();
-    }
+    MusicBrainzPrivacyInfoDialog::showInfoDialog(this);
 }
 
 void MainWindow::showAboutDialog()

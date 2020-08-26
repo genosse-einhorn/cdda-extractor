@@ -499,7 +499,7 @@ toc drive_handle::get_toc()
 
         retval.tracks.push_back(t);
 
-        //qWarning() << "found track: session=" << desc.session_number << "point=" << t.index << "start=" << t.start.to_display() << "adr=" << t.adr << "ctrl=" << t.control;
+        qWarning() << "found track: session=" << desc.session_number << "point=" << t.index << "start=" << t.start.to_display() << "adr=" << t.adr << "ctrl=" << t.control;
     }
 
     // remove everything but tracks and lead-out

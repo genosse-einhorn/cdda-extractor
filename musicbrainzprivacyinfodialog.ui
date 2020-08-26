@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MusicBrainzAskDialog</class>
- <widget class="QDialog" name="MusicBrainzAskDialog">
+ <class>MusicBrainzPrivacyInfoDialog</class>
+ <widget class="QDialog" name="MusicBrainzPrivacyInfoDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>601</width>
-    <height>296</height>
+    <width>760</width>
+    <height>462</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,23 +19,13 @@
   <property name="windowTitle">
    <string>MusicBrainz Metadata Download</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="1">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string/>
@@ -51,7 +41,20 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="3">
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="2">
       <widget class="QLabel" name="label">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
@@ -60,7 +63,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;p&gt;Metadata (i.e. song title, artist names and cover images) can be automatically retrieved from the the &lt;a href=&quot;https://musicbrainz.org/&quot;&gt;MusicBrainz&lt;/a&gt; service and the &lt;a href=&quot;https://coverartarchive.org/&quot;&gt;Cover Art Archive&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;The MusicBrainz service is operated by the &lt;a href=&quot;https://metabrainz.org/&quot;&gt;MetaBrainz Foundation&lt;/a&gt;. The Cover Art Archive is jointly operated by the MetaBrainz Foundation and the &lt;a href=&quot;https://archive.org/&quot;&gt;Internet Archive&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;The operators of the service will necessarily learn about your IP address, the fact that you’re using CDDA-X, and what CDs you’re ripping.&lt;/p&gt;&lt;p&gt;See also:&lt;br/&gt;- &lt;a href=&quot;https://metabrainz.org/privacy&quot;&gt;MetaBrainz Privacy Policy&lt;/a&gt;&lt;br/&gt;- &lt;a href=&quot;https://metabrainz.org/gdpr&quot;&gt;MetaBrainz GDPR information&lt;/a&gt;&lt;br/&gt;- &lt;a href=&quot;https://archive.org/about/terms.php&quot;&gt;Internet Archive Privacy Policy&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Do you want to load metadata from the internet?&lt;/p&gt;</string>
+        <string>&lt;p&gt;Metadata (i.e. song title, artist names and cover images) can be automatically retrieved from the the &lt;a href=&quot;https://musicbrainz.org/&quot;&gt;MusicBrainz&lt;/a&gt; service and the &lt;a href=&quot;https://coverartarchive.org/&quot;&gt;Cover Art Archive&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;The MusicBrainz service is operated by the &lt;a href=&quot;https://metabrainz.org/&quot;&gt;MetaBrainz Foundation&lt;/a&gt;. The Cover Art Archive is jointly operated by the MetaBrainz Foundation and the &lt;a href=&quot;https://archive.org/&quot;&gt;Internet Archive&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;The operators of the service will necessarily learn about your IP address, the fact that you’re using CDDA-X, and what CDs you’re ripping.&lt;/p&gt;&lt;p&gt;See also:&lt;br/&gt;- &lt;a href=&quot;https://metabrainz.org/privacy&quot;&gt;MetaBrainz Privacy Policy&lt;/a&gt;&lt;br/&gt;- &lt;a href=&quot;https://metabrainz.org/gdpr&quot;&gt;MetaBrainz GDPR information&lt;/a&gt;&lt;br/&gt;- &lt;a href=&quot;https://archive.org/about/terms.php&quot;&gt;Internet Archive Privacy Policy&lt;/a&gt;&lt;/p&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -73,14 +76,37 @@
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
+     <item row="1" column="0">
+      <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="3" column="2">
+      <widget class="QCheckBox" name="cbDontAskAgain">
+       <property name="text">
+        <string>Don’t ask me again</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
          <height>20</height>
         </size>
        </property>
@@ -107,13 +133,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="noBtn">
-       <property name="text">
-        <string>No</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -135,7 +154,14 @@
         </font>
        </property>
        <property name="text">
-        <string>Yes, download metadata automatically</string>
+        <string>Yes, download metadata</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="noBtn">
+       <property name="text">
+        <string>Cancel</string>
        </property>
       </widget>
      </item>
@@ -143,6 +169,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>yesBtn</tabstop>
+  <tabstop>noBtn</tabstop>
+  <tabstop>cbDontAskAgain</tabstop>
+ </tabstops>
  <resources>
   <include location="data/data.qrc"/>
  </resources>
