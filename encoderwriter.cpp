@@ -24,7 +24,7 @@
 
 QFuture<QString> EncoderWriter::encodeAndWrite(const QString &outdir, const QString &format, cdda::block_addr_delta track_len, const cdda::track_metadata &metadata, Ringbuffer *rb)
 {
-    return TaskRunner::run([=](const TaskRunner::CancelToken &cancel, const TaskRunner::ProgressToken &progress) {
+    return TaskRunner::run([=](const TaskRunner::CancelToken &cancel, const TaskRunner::ProgressToken &) {
         // create directories
         if (!QDir(outdir).mkpath(QStringLiteral(".")))
             return tr("Could not create directory %1").arg(outdir);
