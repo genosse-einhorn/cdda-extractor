@@ -224,7 +224,7 @@ void parseMedium(QXmlStreamReader *xml, const QString &discid, MusicBrainz::Rele
                 }
             }
         }
-        else if (xml->name() == QLatin1Literal("pregap"))
+        else if (xml->name() == QStringLiteral("pregap"))
         {
             trackMeta.push_back(parseTrack(xml));
         }
@@ -375,7 +375,7 @@ MusicBrainz::ReleaseMetadata getMetadataForRelease(const QString &releaseId, con
         {
             if (xml.name() == QStringLiteral("release"))
             {
-                if (xml.attributes().value(QLatin1Literal("id")) != releaseId)
+                if (xml.attributes().value(QStringLiteral("id")) != releaseId)
                     qWarning() << "WTF: got different release id";
 
                 parseRelease(&xml, discid, metadata);

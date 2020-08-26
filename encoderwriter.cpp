@@ -54,9 +54,9 @@ QFuture<QString> EncoderWriter::encodeAndWrite(const QString &outdir, const QStr
         // create encoder instance
         std::unique_ptr<Encoder::AbstractEncoder> encoder;
 
-        if (format == QLatin1Literal("flac"))
+        if (format == QStringLiteral("flac"))
             encoder.reset(new Encoder::FlacEncoder());
-        else if (format == QLatin1Literal("mp3"))
+        else if (format == QStringLiteral("mp3"))
             encoder.reset(new Encoder::LameEncoder());
         else
             encoder.reset(new Encoder::WavEncoder());
